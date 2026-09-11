@@ -15,13 +15,17 @@ clinic-specific questions (reception, privacy, care coordination), the validated
 - charts clinic-specific ratings, long-term conditions, and respondent demographics
 - includes the free-text patient comments
 
-Render it with:
+Render it to HTML (default) or PDF:
 
 ```sh
-quarto render
+quarto render                     # KensingtonPatientSurvey2026.html, self-contained
+quarto render --to pdf            # KensingtonPatientSurvey2026.pdf
 ```
 
-This produces a self-contained `KensingtonPatientSurvey2026.html`.
+The HTML version has fold/show-code toggles on every code chunk; the PDF hides code by default
+(there's no fold interaction in print) so it reads as a plain report. PDF rendering needs a LaTeX
+install — [TinyTeX](https://quarto.org/docs/output-formats/pdf-engine.html) is the easiest way
+(`quarto install tinytex`).
 
 ## Data
 

@@ -6,9 +6,11 @@
 /.quarto/
 **/*.quarto_ipynb
 
-# Rendered report output (regenerate with `quarto render`)
+# Rendered report output (regenerate with `quarto render --to html` or `--to pdf`)
 *.html
+*.pdf
 *_files/
+KensingtonPatientSurvey2026.tex
 
 # WSL/Windows zone-identifier artifacts on downloaded files
 *:Zone.Identifier

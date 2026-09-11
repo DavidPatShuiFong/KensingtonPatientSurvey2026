@@ -14,9 +14,13 @@ rather than re-deriving label or scoring logic.
 
 ## Commands
 
-- Render the report: `quarto render` (or the Render button in RStudio/Positron). Produces a
-  self-contained `KensingtonPatientSurvey2026.html` (format/options are in the `.qmd`'s YAML
-  front matter).
+- Render the report: `quarto render` (HTML, default) or `quarto render --to pdf` (or the Render
+  button in RStudio/Positron). Format options for both are in the `.qmd`'s YAML front matter.
+  PDF needs a LaTeX install (TinyTeX is present in this environment: `pdflatex`/`xelatex`/
+  `lualatex`). The `pdf` format sets `echo: false` (code is hidden — there's no fold UI in print,
+  unlike the HTML format's `code-fold: true`) and figures use `dev = "cairo_pdf"` when
+  `knitr::is_latex_output()` so Unicode characters (en dashes, etc.) in chart text render
+  correctly — do not add figure-generating code that assumes the base R `pdf()` device.
 - There is no package manager lockfile (no `renv.lock`) and no test suite — this is a single-document
   Quarto analysis project, not an R package.
 - Read the Excel form definition with `readxl::read_excel(path, sheet = "survey"|"choices"|"settings")`

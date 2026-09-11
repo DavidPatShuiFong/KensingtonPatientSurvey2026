@@ -10,6 +10,14 @@ format:
     code-summary: "Show the code"
     embed-resources: true
     theme: flatly
+  pdf:
+    toc: true
+    toc-depth: 2
+    number-sections: false
+    fig-pos: "H"
+    geometry:
+      - margin=2.5cm
+    echo: false
 execute:
   warning: false
   message: false
@@ -23,6 +31,14 @@ library(tidyverse)
 library(readxl)
 library(scales)
 library(knitr)
+
+# Figures are sized (fig-width/fig-height) per chunk for comfortable HTML
+# layout; out.width scales the embedded image to fit the page/column in both
+# HTML and PDF output so nothing overflows a PDF page's margins. cairo_pdf
+# (instead of the base "pdf" device) renders Unicode characters (en dashes,
+# em dashes) correctly when the format is PDF.
+opts_chunk$set(out.width = "100%")
+if (knitr::is_latex_output()) opts_chunk$set(dev = "cairo_pdf")
 
 csv_path  <- "Patient feedback questionnaire — cohealth Kensington GP clinic 2026_WIDE.csv"
 form_path <- "kensington_p3ceq_2026_surveycto.xlsx"
