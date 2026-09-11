@@ -424,6 +424,33 @@ bind_rows(
         panel.spacing.x = unit(1.4, "lines"))
 ```
 
+A large share of the Q25 "Other" responses come from a wide mix of languages, none individually
+common enough to be listed as its own choice on the form. `q25_other` holds what respondents
+typed in; below are those free-text responses as given (grouped only where the text matches
+exactly), most-common first.
+
+```{r}
+#| label: fig-languages-other
+#| fig-cap: "Q25 'Other' responses: languages named in free text"
+#| fig-width: 7
+#| fig-height: 4
+
+other_langs <- survey |>
+  mutate(q25_other = str_squish(q25_other)) |>
+  filter(!is.na(q25_other), q25_other != "") |>
+  count(q25_other, sort = TRUE)
+
+other_langs |>
+  mutate(q25_other = fct_reorder(q25_other, n)) |>
+  ggplot(aes(n, q25_other)) +
+  geom_col(fill = pal_blue, width = 0.6) +
+  geom_text(aes(label = n), hjust = -0.4, size = 3.3, colour = ink_secondary) +
+  scale_x_continuous(limits = c(0, max(other_langs$n) * 1.15), breaks = scales::breaks_pretty()) +
+  labs(x = "Respondents", y = NULL, title = "Q25 \"Other\": languages named in free text",
+       subtitle = paste0(sum(other_langs$n), " free-text responses, out of ",
+                          languages$n[languages$label == "Other"], " respondents who selected \"Other\""))
+```
+
 ## What patients said
 
 Question 21 asked what one thing respondents would change about the practice.
