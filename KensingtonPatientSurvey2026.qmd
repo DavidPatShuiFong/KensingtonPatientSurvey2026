@@ -1,0 +1,440 @@
+---
+title: "cohealth Kensington GP Clinic — Patient Feedback Survey 2026"
+subtitle: "P3CEQ person-centred care results and patient experience summary"
+date: today
+format:
+  html:
+    toc: true
+    toc-depth: 2
+    code-fold: true
+    code-summary: "Show the code"
+    embed-resources: true
+    theme: flatly
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+library(tidyverse)
+library(readxl)
+library(scales)
+library(knitr)
+
+csv_path  <- "Patient feedback questionnaire — cohealth Kensington GP clinic 2026_WIDE.csv"
+form_path <- "kensington_p3ceq_2026_surveycto.xlsx"
+
+# ---- palette (dataviz skill default palette) ---------------------------
+pal_blue   <- "#2a78d6"
+pal_seq    <- c("#9ec5f4", "#6da7ec", "#3987e5", "#2a78d6", "#1c5cab") # light -> dark, 5 steps
+pal_cat    <- c("#2a78d6", "#eb6834", "#1baf7a", "#eda100",
+                 "#e87ba4", "#008300", "#4a3aa7", "#e34948")
+ink_primary   <- "#0b0b0b"
+ink_secondary <- "#52514e"
+ink_muted     <- "#898781"
+grid_col      <- "#e1e0d9"
+baseline_col  <- "#c3c2b7"
+
+theme_report <- theme_minimal(base_size = 12) +
+  theme(
+    text = element_text(colour = ink_primary),
+    plot.title = element_text(face = "bold", size = 13, colour = ink_primary),
+    plot.subtitle = element_text(colour = ink_secondary, size = 10.5),
+    axis.text = element_text(colour = ink_secondary),
+    axis.title = element_text(colour = ink_secondary, size = 10),
+    panel.grid.major.x = element_line(colour = grid_col, linewidth = 0.3),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor = element_blank(),
+    axis.line.y = element_line(colour = baseline_col, linewidth = 0.4),
+    axis.ticks = element_blank(),
+    legend.title = element_blank(),
+    legend.position = "top",
+    legend.justification = "left",
+    plot.title.position = "plot"
+  )
+theme_set(theme_report)
+
+strip_html <- function(x) x |> str_remove_all("<[^>]+>") |> str_squish()
+```
+
+## About this report
+
+This report summarises responses to the 2026 cohealth Kensington GP clinic patient feedback
+survey. The survey combines three blocks: clinic-specific items about reception, privacy and
+care coordination; the validated **P3CEQ** (Person Centred Coordinated Care Experiences
+Questionnaire); and a set of demographic questions. Full item wording and response options are
+defined in `r form_path`; the P3CEQ instrument and its official scoring rules are documented in
+`P3C-PEQ with scoring.pdf`.
+
+```{r}
+#| label: load-data
+
+raw <- read_csv(csv_path, show_col_types = FALSE, name_repair = "minimal")
+
+form_survey  <- read_excel(form_path, sheet = "survey")  |> select(type, name, label)
+form_choices <- read_excel(form_path, sheet = "choices") |> mutate(value = as.character(value))
+
+choice_labels <- function(list_name) {
+  form_choices |>
+    filter(list_name == !!list_name) |>
+    select(value, label) |>
+    deframe()
+}
+
+item_label <- function(varname) {
+  lab <- form_survey$label[form_survey$name == varname]
+  if (length(lab) == 0 || is.na(lab)) return(varname)
+  strip_html(lab)
+}
+
+survey <- raw |> filter(consent == 1)
+```
+
+### Participation
+
+```{r}
+#| label: participation
+
+n_total     <- nrow(raw)
+n_consented <- nrow(survey)
+n_declined  <- n_total - n_consented
+
+dates <- raw |>
+  mutate(submit_dt = lubridate::mdy_hms(SubmissionDate)) |>
+  summarise(first = min(submit_dt, na.rm = TRUE), last = max(submit_dt, na.rm = TRUE))
+
+med_duration <- median(survey$duration, na.rm = TRUE) / 60
+
+tibble(
+  Measure = c("Total submissions", "Consented (analysed below)", "Declined consent",
+              "Collection period", "Median completion time"),
+  Value = c(
+    n_total,
+    n_consented,
+    n_declined,
+    paste(format(dates$first, "%d %b %Y"), "–", format(dates$last, "%d %b %Y")),
+    paste0(round(med_duration, 1), " minutes")
+  )
+) |>
+  kable(align = "l")
+```
+
+Of `r n_total` submissions, `r n_consented` respondents consented to take part; the summaries
+below are based on those `r n_consented` responses. `r n_declined` people opened the survey and
+declined.
+
+## P3CEQ: person-centred coordinated care experience
+
+Questions 4–20 of the survey reproduce the P3CEQ instrument, adapted into cohealth Kensington's
+own response wording. Raw response codes are recoded onto the official P3CEQ 0–3 scale before
+scoring, following the mapping in `CLAUDE.md`. The total score sums the ten P3CEQ items
+(Q7 contributes the average of its four sub-items 7a–7d), giving a score out of 30 where higher
+means a more person-centred, coordinated care experience. Two optional subscales are also
+reported: **person-centred (PC)** and **care coordination (CC)**.
+
+```{r}
+#| label: p3ceq-recode
+
+recode_yesdef  <- function(x) case_when(x == 1 ~ 3, x == 2 ~ 2, x == 3 ~ 1, x == 4 ~ 0, x == 5 ~ 0, TRUE ~ NA_real_)
+recode_q10     <- function(x) case_when(x == 1 ~ 3, x == 2 ~ 0, x == 3 ~ 3, x == 4 ~ 0, TRUE ~ NA_real_)
+recode_yesno3  <- function(x) case_when(x == 1 ~ 3, x == 2 ~ 0, x == 3 ~ 0, TRUE ~ NA_real_)
+recode_extent5 <- function(x) case_when(x == 1 ~ 0, x == 2 ~ 1, x == 3 ~ 2, x == 4 ~ 3, x == 5 ~ 0, TRUE ~ NA_real_)
+recode_q17     <- function(x) case_when(x == 1 ~ 3, x == 2 ~ 0, x == 3 ~ 1, x == 4 ~ 2, x == 5 ~ 3, x == 6 ~ 0, x == 7 ~ 0, TRUE ~ NA_real_)
+recode_q18     <- function(x) case_when(x == 1 ~ 0, x == 2 ~ 1, x == 3 ~ 2, x == 4 ~ 3, x == 5 ~ 2, x == 6 ~ 0, x == 7 ~ 0, TRUE ~ NA_real_)
+recode_q19     <- function(x) case_when(x == 1 ~ 3, x == 2 ~ 2, x == 3 ~ 1, x == 4 ~ 0, x == 5 ~ 0, TRUE ~ NA_real_)
+
+p3ceq <- survey |>
+  transmute(
+    KEY,
+    p1  = recode_yesdef(q4),
+    p2  = recode_yesdef(q5),
+    p3  = recode_yesdef(q6),
+    p4  = recode_yesdef(q7),
+    p5  = recode_yesdef(q8),
+    p6  = recode_q10(q10),
+    p7a = recode_yesno3(q13),
+    p7b = recode_yesno3(q14),
+    p7c = recode_extent5(q15),
+    p7d = recode_extent5(q16),
+    p8  = recode_q17(q17),
+    p9  = recode_q18(q18),
+    p10 = recode_q19(q19)
+  ) |>
+  mutate(
+    p7 = if_else(p7a == 0, 0, rowMeans(cbind(p7a, p7b, p7c, p7d), na.rm = FALSE))
+  ) |>
+  mutate(
+    total       = p1 + p2 + p3 + p4 + p5 + p6 + p7 + p8 + p9 + p10,
+    pc_subscale = p1 + p2 + p3 + p4 + p5 + p8 + p9 + p10,
+    cc_subscale = p5 + p6 + p7 + p8 + p9
+  )
+```
+
+### Total and subscale scores
+
+```{r}
+#| label: p3ceq-scores
+
+score_summary <- function(x, label, max_score) {
+  tibble(
+    Score = label,
+    n = sum(!is.na(x)),
+    Mean = mean(x, na.rm = TRUE),
+    Median = median(x, na.rm = TRUE),
+    SD = sd(x, na.rm = TRUE),
+    `Out of` = max_score
+  )
+}
+
+bind_rows(
+  score_summary(p3ceq$total, "P3CEQ total", 30),
+  score_summary(p3ceq$pc_subscale, "Person-centred subscale (PC)", 24),
+  score_summary(p3ceq$cc_subscale, "Care coordination subscale (CC)", 15)
+) |>
+  mutate(across(c(Mean, Median, SD), \(x) round(x, 1))) |>
+  kable(align = "lrrrrr")
+```
+
+```{r}
+#| label: fig-p3ceq-total-dist
+#| fig-cap: "Distribution of P3CEQ total scores (0–30, higher = more person-centred)"
+
+p3ceq |>
+  filter(!is.na(total)) |>
+  ggplot(aes(total)) +
+  geom_histogram(binwidth = 2, boundary = 0, fill = pal_blue, colour = "white", linewidth = 0.3) +
+  scale_x_continuous(limits = c(0, 30), breaks = seq(0, 30, 5)) +
+  labs(x = "P3CEQ total score", y = "Respondents", title = "P3CEQ total score distribution")
+```
+
+### Item-level results
+
+```{r}
+#| label: fig-p3ceq-items
+#| fig-cap: "Mean score per P3CEQ item (0–3 scale, higher = better)"
+#| fig-height: 5
+
+p3ceq_item_labels <- c(
+  p1  = "Q1. Discussed what matters to you",
+  p2  = "Q2. Involved in decisions about your care",
+  p3  = "Q3. Considered as a whole person",
+  p4  = "Q4. Didn't have to repeat information*",
+  p5  = "Q5. Healthcare joined up / works for you",
+  p6  = "Q6. Has a single coordinating professional",
+  p7  = "Q7. Care plan in place and followed (avg of 7a–7d)",
+  p8  = "Q8. Enough support to manage own health",
+  p9  = "Q9. Useful information when needed",
+  p10 = "Q10. Confident managing own health"
+)
+
+p3ceq |>
+  select(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10) |>
+  pivot_longer(everything(), names_to = "item", values_to = "score") |>
+  filter(!is.na(score)) |>
+  group_by(item) |>
+  summarise(mean_score = mean(score), n = n(), .groups = "drop") |>
+  mutate(item = fct_reorder(p3ceq_item_labels[item], mean_score)) |>
+  ggplot(aes(mean_score, item)) +
+  geom_col(fill = pal_blue, width = 0.7) +
+  geom_text(aes(label = number(mean_score, accuracy = 0.1)),
+            hjust = -0.3, size = 3.3, colour = ink_secondary) +
+  scale_x_continuous(limits = c(0, 3.4), breaks = 0:3) +
+  labs(x = "Mean score (0–3)", y = NULL,
+       title = "P3CEQ item scores",
+       subtitle = "*Q4 is reverse-scored: a high score means information rarely had to be repeated")
+```
+
+## Clinic-specific experience
+
+Questions 1–3 ask about reception staff, privacy, and how well your clinician coordinated with
+other health professionals, each rated on a 5-point Poor–Excellent scale (with "N/A" and "Don't
+know" excluded from the summaries below).
+
+```{r}
+#| label: fig-rate7-items
+#| fig-cap: "Reception, privacy and clinician coordination — response distribution (valid responses only)"
+#| fig-width: 9
+#| fig-height: 5.5
+
+rate7_labs <- choice_labels("rate7")
+rate7_valid <- names(rate7_labs)[!rate7_labs %in% c("N/A", "Don't know")]
+
+rate7_vars <- c("q1a", "q1b", "q1c", "q2a", "q2b", "q2c", "q3a", "q3b", "q3c", "q3d")
+
+rate7_long <- survey |>
+  select(all_of(rate7_vars)) |>
+  mutate(across(everything(), as.character)) |>
+  pivot_longer(everything(), names_to = "var", values_to = "value") |>
+  filter(value %in% rate7_valid) |>
+  mutate(
+    item = fct_rev(fct_inorder(map_chr(var, item_label))),
+    response = factor(rate7_labs[value], levels = rate7_labs[rate7_valid])
+  )
+
+rate7_long |>
+  count(item, response) |>
+  group_by(item) |>
+  mutate(pct = n / sum(n)) |>
+  ungroup() |>
+  ggplot(aes(pct, item, fill = response)) +
+  geom_col(width = 0.7, position = position_stack(reverse = TRUE)) +
+  scale_fill_manual(values = pal_seq) +
+  scale_x_continuous(labels = percent, expand = expansion(mult = c(0, 0.02))) +
+  labs(x = "Share of valid responses", y = NULL, title = "Ratings by item") +
+  theme(legend.position = "top")
+```
+
+```{r}
+#| label: rate7-comments
+
+comment_table <- function(var, heading) {
+  txt <- survey[[var]][!is.na(survey[[var]]) & str_trim(survey[[var]]) != ""]
+  if (length(txt) == 0) return(invisible(NULL))
+  cat("\n**", heading, "** (", length(txt), " comments)\n\n", sep = "")
+  cat(paste0("- ", txt, collapse = "\n"), "\n")
+}
+```
+
+::: {.callout-note collapse="true"}
+## Free-text comments on reception, privacy and coordination
+
+```{r}
+#| label: rate7-comments-out
+#| results: asis
+
+comment_table("q1_comment", "Reception staff")
+comment_table("q2_comment", "Privacy")
+comment_table("q3_comment", "Coordination with other healthcare professionals")
+```
+:::
+
+## Long-term conditions
+
+```{r}
+#| label: fig-conditions
+#| fig-cap: "Long-term conditions reported by respondents"
+#| fig-width: 8
+#| fig-height: 7
+
+summarise_multiselect <- function(data, prefix, list_name) {
+  labs <- choice_labels(list_name)
+  cols <- data |> select(matches(paste0("^", prefix, "_[0-9]+$")))
+  tibble(
+    value = str_remove(names(cols), paste0("^", prefix, "_")),
+    n = colSums(cols, na.rm = TRUE)
+  ) |>
+    mutate(label = labs[value], pct = n / nrow(data)) |>
+    arrange(desc(n))
+}
+
+conditions <- summarise_multiselect(survey, "q9", "conditions")
+
+conditions |>
+  mutate(label = fct_reorder(str_wrap(label, 28), n)) |>
+  ggplot(aes(n, label)) +
+  geom_col(fill = pal_blue, width = 0.6) +
+  geom_text(aes(label = n), hjust = -0.4, size = 3.3, colour = ink_secondary) +
+  scale_x_continuous(limits = c(0, max(conditions$n) * 1.15)) +
+  labs(x = "Respondents", y = NULL, title = "Long-term conditions (Q9)",
+       subtitle = paste0("Out of ", n_consented, " respondents; multiple selections allowed"))
+```
+
+## Respondent profile
+
+```{r}
+#| label: fig-demographics
+#| fig-cap: "Respondent demographics"
+#| fig-width: 11
+#| fig-height: 9
+
+demo_vars <- tribble(
+  ~var, ~list, ~title,
+  "q22", "q22opts", "Gender (Q22)",
+  "q26", "q26opts", "Age (Q26)",
+  "q27", "q27opts", "Time at this practice (Q27)",
+  "q29", "q29opts", "Visits in past 12 months (Q29)",
+  "q30", "q30opts", "Highest education level (Q30)",
+  "q31", "q31opts", "Visit was for self or someone else (Q31)"
+)
+
+demo_long <- pmap_dfr(demo_vars, function(var, list, title) {
+  labs <- choice_labels(list)
+  survey |>
+    mutate(value = as.character(.data[[var]])) |>
+    filter(!is.na(value), value %in% names(labs)) |>
+    count(value) |>
+    mutate(
+      question = title,
+      response = factor(labs[value], levels = labs),
+      pct = n / sum(n)
+    )
+})
+
+demo_long |>
+  ggplot(aes(pct, fct_rev(response))) +
+  geom_col(fill = pal_blue, width = 0.7) +
+  geom_text(aes(label = percent(pct, accuracy = 1)), hjust = -0.2, size = 3, colour = ink_secondary) +
+  scale_x_continuous(labels = percent, expand = expansion(mult = c(0, 0.25))) +
+  facet_wrap(~question, scales = "free_y", ncol = 2) +
+  labs(x = NULL, y = NULL, title = "Who responded") +
+  theme(strip.text = element_text(face = "bold", colour = ink_primary, hjust = 0),
+        panel.spacing.x = unit(1.4, "lines"))
+```
+
+```{r}
+#| label: demographics-extra
+
+atsi_pct    <- mean(survey$q23 == 1, na.rm = TRUE)
+other_gp_pct <- mean(survey$q24 == 1, na.rm = TRUE)
+
+languages <- summarise_multiselect(survey, "q25", "languages")
+concession <- summarise_multiselect(survey, "q28", "q28opts")
+
+tibble(
+  Measure = c(
+    "Identify as Aboriginal and/or Torres Strait Islander (Q23)",
+    "Attended another general practice in the last year (Q24)"
+  ),
+  Value = percent(c(atsi_pct, other_gp_pct), accuracy = 1)
+) |>
+  kable(align = "l")
+```
+
+```{r}
+#| label: fig-languages
+#| fig-cap: "Languages spoken at home (Q25) and concession cards held (Q28)"
+#| fig-width: 10
+#| fig-height: 4.5
+
+bind_rows(
+  languages |> mutate(facet = "Languages spoken at home (Q25)"),
+  concession |> mutate(facet = "Concession cards held (Q28)")
+) |>
+  mutate(label = fct_reorder(label, n)) |>
+  ggplot(aes(n, label)) +
+  geom_col(fill = pal_blue, width = 0.7) +
+  geom_text(aes(label = n), hjust = -0.4, size = 3.2, colour = ink_secondary) +
+  facet_wrap(~facet, scales = "free", ncol = 2) +
+  scale_x_continuous(expand = expansion(mult = c(0, 0.15))) +
+  labs(x = "Respondents", y = NULL) +
+  theme(strip.text = element_text(face = "bold", colour = ink_primary, hjust = 0),
+        panel.spacing.x = unit(1.4, "lines"))
+```
+
+## What patients said
+
+Question 21 asked what one thing respondents would change about the practice.
+
+::: {.callout-note collapse="true"}
+## Free-text: "If you could change one thing about the practice..." (Q21)
+
+```{r}
+#| label: q21-comments
+#| results: asis
+
+comment_table("q21", "Suggested changes")
+```
+:::

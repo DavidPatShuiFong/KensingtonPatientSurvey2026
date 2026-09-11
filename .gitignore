@@ -1,0 +1,19 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+
+/.quarto/
+**/*.quarto_ipynb
+
+# Rendered report output (regenerate with `quarto render`)
+*.html
+*_files/
+
+# WSL/Windows zone-identifier artifacts on downloaded files
+*:Zone.Identifier
+
+# Real patient response data and copyrighted instrument PDF - keep local only,
+# never commit (see CLAUDE.md for what these are and how the report uses them)
+Patient feedback questionnaire *.csv
+P3C-PEQ with scoring.pdf
