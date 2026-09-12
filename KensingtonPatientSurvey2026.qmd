@@ -304,6 +304,71 @@ p3ceq |>
   labs(x = "P3CEQ total score", y = "Respondents", title = "P3CEQ total score distribution")
 ```
 
+### Care coordination subscale vs PaRIS 2023
+
+cohealth Kensington general practice previously conducted the P3CEQ survey in 2023 as part of PaRIS [@paris].
+As pat of PaRIS, 193 patients aged 45+ years of the cohealth Kensington clinic returned a survey.
+
+PaRIS reported the P3CEQ care coordination (CC) subscale breakdown, comparing Kensington's own patients
+against a national comparison group (see `P3CEQ coordinated care subscale PaRIS 2023.png`).
+
+```{r}
+cc_bands <- c("Very low (0–3)", "Low (3.01–6)", "Moderate (6.01–9)", "High (9.01–12)", "Very high (12.01–15)")
+
+# Reference percentages read off "P3CEQ coordinated care subscale PaRIS 2023.png" - no digital
+# source for these exists, only that chart image (Kensington's 2023 PaRIS results and the PaRIS
+# national comparison group). Average scores from the same image: 8.8 (Kensington 2023, Moderate)
+# and 9.8 (PaRIS comparison 2023).
+cc_paris_2023 <- tibble(
+  band = factor(cc_bands, levels = cc_bands),
+  `Kensington 2023`        = c(10, 19, 24, 23, 24),
+  `PaRIS comparison 2023`  = c(6, 14, 24, 33, 23)
+)
+
+band_of_cc <- function(x) cut(x, breaks = c(0, 3, 6, 9, 12, 15), labels = cc_bands, include.lowest = TRUE)
+
+cc_2026_data <- p3ceq |>
+  left_join(survey |> select(KEY, q26), by = "KEY") |>
+  filter(q26 %in% c(3, 4), !is.na(cc_subscale)) # age 45-64 (3) or 65+ (4), per q26opts
+
+cc_2026_bands <- cc_2026_data |>
+  mutate(band = band_of_cc(cc_subscale)) |>
+  count(band, .drop = FALSE) |>
+  mutate(`Kensington 2026` = n / sum(n) * 100) |>
+  select(band, `Kensington 2026`)
+
+cc_compare <- cc_paris_2023 |>
+  left_join(cc_2026_bands, by = "band") |>
+  pivot_longer(-band, names_to = "series", values_to = "pct") |>
+  mutate(series = factor(series, levels = c("Kensington 2023", "PaRIS comparison 2023", "Kensington 2026")))
+```
+
+```{r}
+#| label: cc-subscale-avg
+
+avg_cc_2026 <- mean(cc_2026_data$cc_subscale)
+n_cc_2026   <- nrow(cc_2026_data)
+```
+
+Average P3CEQ care coordination subscale score among respondents aged 45+ (n = `r n_cc_2026`) was
+**`r round(avg_cc_2026, 1)` ** (`r band_of_cc(avg_cc_2026)`) for Kensington 2026.
+This compares to 8.8 (Moderate) for Kensington 2023 and 9.8 for the PaRIS 2023 comparison group.
+
+```{r}
+#| label: fig-cc-subscale-paris
+#| fig-cap: "P3CEQ care coordination subscale (0–15), patients aged 45+: Kensington 2026 vs PaRIS 2023"
+#| fig-width: 8
+#| fig-height: 4.5
+
+ggplot(cc_compare, aes(pct, fct_rev(band), fill = series)) +
+  geom_col(position = position_dodge(width = 0.75), width = 0.65) +
+  geom_text(aes(label = paste0(round(pct), "%")), position = position_dodge(width = 0.75),
+            hjust = -0.2, size = 3, colour = ink_secondary) +
+  scale_fill_manual(values = pal_cat[1:3]) +
+  scale_x_continuous(limits = c(0, max(cc_compare$pct, na.rm = TRUE) * 1.15)) +
+  labs(x = "Share of respondents aged 45+", y = NULL)
+```
+
 ### Item-level results
 
 ```{r}
