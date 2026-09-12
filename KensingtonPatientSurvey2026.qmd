@@ -439,7 +439,7 @@ respondents who selected "Other long-term condition(s)".
 #| label: fig-demographics
 #| fig-cap: "Respondent demographics"
 #| fig-width: 11
-#| fig-height: 9
+#| fig-height: 12
 
 demo_vars <- tribble(
   ~var, ~list, ~title,
@@ -448,7 +448,9 @@ demo_vars <- tribble(
   "q27", "q27opts", "Time at this practice (Q27)",
   "q29", "q29opts", "Visits in past 12 months (Q29)",
   "q30", "q30opts", "Highest education level (Q30)",
-  "q31", "q31opts", "Visit was for self or someone else (Q31)"
+  "q31", "q31opts", "Visit was for self or someone else (Q31)",
+  "q23", "yesno",   "Aboriginal/Torres Strait Islander (Q23)",
+  "q24", "yesno",   "Attended another GP practice in past year (Q24)"
 )
 
 demo_long <- pmap_dfr(demo_vars, function(var, list, title) {
@@ -478,20 +480,8 @@ demo_long |>
 ```{r}
 #| label: demographics-extra
 
-atsi_pct    <- mean(survey$q23 == 1, na.rm = TRUE)
-other_gp_pct <- mean(survey$q24 == 1, na.rm = TRUE)
-
 languages <- summarise_multiselect(survey, "q25", "languages")
 concession <- summarise_multiselect(survey, "q28", "q28opts")
-
-tibble(
-  Measure = c(
-    "Identify as Aboriginal and/or Torres Strait Islander (Q23)",
-    "Attended another general practice in the last year (Q24)"
-  ),
-  Value = percent(c(atsi_pct, other_gp_pct), accuracy = 1)
-) |>
-  kable(align = "l")
 ```
 
 ```{r}
