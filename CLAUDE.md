@@ -12,6 +12,12 @@ renders standalone (`quarto render`, self-contained `embed-resources: true` HTML
 it, reuse the existing `choice_labels()`/`item_label()` helpers and the `recode_*()` functions
 rather than re-deriving label or scoring logic.
 
+**Preserve user comments.** When editing or rewriting any code in this repo (R chunks, YAML,
+etc.), never drop existing comments as a side effect — including plain `#`/`<!-- -->` remarks that
+look incidental, not just ones flagged important. If a comment's code moves or is rewritten, move
+the comment with it (adjusting wording only if the code change makes it inaccurate); if a comment
+is genuinely obsolete after a change, say so explicitly rather than silently deleting it.
+
 ## Commands
 
 - Render the report: `quarto render` (HTML, default) or `quarto render --to pdf` (or the Render
@@ -71,7 +77,7 @@ The instrument mixes three blocks under one SurveyCTO form:
    | `q4` | Q1 (discussed what's important to you) | `yesdef` (1=Yes definitely…5=Not sure) | 1→3, 2→2, 3→1, 4→0, 5→0 |
    | `q5` | Q2 (involved in decisions) | `yesdef` | same as above |
    | `q6` | Q3 (whole person, not just condition) | `yesdef` | same as above |
-   | `q7` | Q4 (repeated info — reverse scored in original) | `yesdef` | same as above |
+   | `q7` | Q4 (repeated info — reverse scored in original) | `yesdef` — **negatively framed, unlike `q4`/`q5`/`q6`/`q8`: "Yes, definitely" means the bad thing (repeating info) happened a lot, not that a good thing happened** | 1→0, 2→1, 3→2, 4→3, 5→0 (`recode_yesdef_reverse()`, the mirror of `recode_yesdef()` — this is NOT "same as above") |
    | `q8` | Q5 (care joined up) | `yesdef` | same as above |
    | `q10` | Q6 (single coordinating professional) | `q10opts` (1=Yes,2=No,3=only one service,4=Not sure) | 1→3, 2→0, 3→3, 4→0 |
    | `q11` | Q6 follow-up (same professional) | `q11opts` | supplementary detail, not separately scored in P3CEQ |

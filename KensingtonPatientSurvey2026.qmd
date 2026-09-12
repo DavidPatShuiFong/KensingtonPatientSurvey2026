@@ -21,6 +21,44 @@ format:
 execute:
   warning: false
   message: false
+references:
+  - type: webpage
+    id: paris
+    author:
+      - literal: "Australian Commission on Safety and Quality in Health Care"
+    title: "PaRIS Survey - Australian National Report 2025"
+    url: "https://www.safetyandquality.gov.au/resources/paris-survey-australian-national-report-2025"
+    issued:
+      date-parts:
+        - [2025]
+    accessed:
+      date-parts:
+        - [2026, 9, 12]
+  - type: webpage
+    id: racgppatientfeedbackguide
+    author:
+      - literal: "RACGP"
+    title: "Standards for general practices (5th edition), Patient feedback guide"
+    url: "https://www.racgp.org.au/running-a-practice/practice-standards/standards-5th-edition/patient-feedback-guide"
+    issued:
+      date-parts:
+        - [2023, 8]
+    accessed:
+      date-parts:
+        - [2026, 9, 12]
+  - type: webpage
+    id: p3c_p3c-eq
+    author:
+      - literal: "University of Plymouth"
+    title: "Person centred coordinated experience questionnaire P3C-EQ"
+    url: "http://p3c.org.uk/prom-detail/29#ChildVerticalTab_11"
+    issued:
+      date-parts:
+        - [2017]
+    accessed:
+      date-parts:
+        - [2026, 9, 12]
+editor: source
 ---
 
 ```{r}
@@ -79,10 +117,12 @@ strip_html <- function(x) x |> str_remove_all("<[^>]+>") |> str_squish()
 ## About this report
 
 This report summarises responses to the 2026 cohealth Kensington GP clinic patient feedback
-survey. The survey combines three blocks: clinic-specific items about reception, privacy and
-care coordination; the validated **P3CEQ** (Person Centred Coordinated Care Experiences
-Questionnaire); and a set of demographic questions. Full item wording and response options are
-defined in `r form_path`; the P3CEQ instrument and its official scoring rules are documented in
+survey. The survey combines clinic-specific items about reception, privacy and
+care coordination and demographic questions from "Standards for general practices (5th edition), Patient feedback guide" [@racgppatientfeedbackguide]
+and the validated **P3CEQ** (Person Centred Coordinated Care Experiences Questionnaire) [@p3c_p3c-eq].
+
+Full item wording and response options are
+defined in `` `r form_path` ``; the P3CEQ instrument and its official scoring rules are documented in
 `P3C-PEQ with scoring.pdf`.
 
 ```{r}
@@ -93,13 +133,15 @@ raw <- read_csv(csv_path, show_col_types = FALSE, name_repair = "minimal")
 form_survey  <- read_excel(form_path, sheet = "survey")  |> select(type, name, label)
 form_choices <- read_excel(form_path, sheet = "choices") |> mutate(value = as.character(value))
 
+# return a labelled vector of choice responses
 choice_labels <- function(list_name) {
   form_choices |>
     filter(list_name == !!list_name) |>
     select(value, label) |>
-    deframe()
+    deframe() # change dataframe to vector
 }
 
+# return 'labels' of a question (often the question itself)
 item_label <- function(varname) {
   lab <- form_survey$label[form_survey$name == varname]
   if (length(lab) == 0 || is.na(lab)) return(varname)
@@ -125,8 +167,8 @@ dates <- raw |>
 med_duration <- median(survey$duration, na.rm = TRUE) / 60
 
 tibble(
-  Measure = c("Total submissions", "Consented (analysed below)", "Declined consent",
-              "Collection period", "Median completion time"),
+  Measure = c("Total submissions", "Consented (analysed below)", "Declined consent (online)",
+              "Collection period (online)", "Median completion time (online)"),
   Value = c(
     n_total,
     n_consented,
@@ -138,14 +180,23 @@ tibble(
   kable(align = "l")
 ```
 
-Of `r n_total` submissions, `r n_consented` respondents consented to take part; the summaries
-below are based on those `r n_consented` responses. `r n_declined` people opened the survey and
+Both paper and online versions of the survey were made available. The paper and online versions of the survey were
+identical and available in English only.
+
+Paper versions of the survey were offered to patients in the waiting and consulting rooms (11th August to 11th September 2026).
+
+RACGP active patients (three visits or more in the past two years with GP clinicians
+at the cohealth Kensington site) who also had seen a cohealth Kensington GP at least once in 2026 and aged 20 years or above
+were sent a SMS invitation to complete the survey online on 5th September 2026. 948 patients were invited to complete the survey
+through an SMS invitation.
+
+The summaries below are based on those `r n_consented` responses. `r n_declined` people opened the survey online and
 declined.
 
 ## P3CEQ: person-centred coordinated care experience
 
-Questions 4–20 of the survey reproduce the P3CEQ instrument, adapted into cohealth Kensington's
-own response wording. Raw response codes are recoded onto the official P3CEQ 0–3 scale before
+Questions 4–20 of the survey reproduce the P3CEQ instrument, using wording as adapted by
+the PaRIS international patient reported indicator survey [ACSQHC, -@paris]. Raw response codes are recoded onto the official P3CEQ 0–3 scale before
 scoring, following the mapping in `CLAUDE.md`. The total score sums the ten P3CEQ items
 (Q7 contributes the average of its four sub-items 7a–7d), giving a score out of 30 where higher
 means a more person-centred, coordinated care experience. Two optional subscales are also
@@ -155,6 +206,12 @@ reported: **person-centred (PC)** and **care coordination (CC)**.
 #| label: p3ceq-recode
 
 recode_yesdef  <- function(x) case_when(x == 1 ~ 3, x == 2 ~ 2, x == 3 ~ 1, x == 4 ~ 0, x == 5 ~ 0, TRUE ~ NA_real_)
+# q7 ("Were there times when you had to repeat information...") is a negatively-framed yesdef
+# item, unlike q4/q5/q6/q8: "Yes, definitely" here means the bad thing happened a lot, not that
+# a good thing happened. The original P3CEQ Q4 is reverse-scored for exactly this reason (Not at
+# all=3 ... Always=0), so the recode must flip polarity vs. recode_yesdef to keep "higher = better"
+# consistent across all ten items.
+recode_yesdef_reverse <- function(x) case_when(x == 1 ~ 0, x == 2 ~ 1, x == 3 ~ 2, x == 4 ~ 3, x == 5 ~ 0, TRUE ~ NA_real_)
 recode_q10     <- function(x) case_when(x == 1 ~ 3, x == 2 ~ 0, x == 3 ~ 3, x == 4 ~ 0, TRUE ~ NA_real_)
 recode_yesno3  <- function(x) case_when(x == 1 ~ 3, x == 2 ~ 0, x == 3 ~ 0, TRUE ~ NA_real_)
 recode_extent5 <- function(x) case_when(x == 1 ~ 0, x == 2 ~ 1, x == 3 ~ 2, x == 4 ~ 3, x == 5 ~ 0, TRUE ~ NA_real_)
@@ -168,7 +225,7 @@ p3ceq <- survey |>
     p1  = recode_yesdef(q4),
     p2  = recode_yesdef(q5),
     p3  = recode_yesdef(q6),
-    p4  = recode_yesdef(q7),
+    p4  = recode_yesdef_reverse(q7),
     p5  = recode_yesdef(q8),
     p6  = recode_q10(q10),
     p7a = recode_yesno3(q13),
