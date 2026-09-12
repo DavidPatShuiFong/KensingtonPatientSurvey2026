@@ -171,18 +171,28 @@ n_total     <- nrow(raw)
 n_consented <- nrow(survey)
 n_declined  <- n_total - n_consented
 
+n_paper  <- sum(survey$is_paper)
+n_online <- n_consented - n_paper
+
+# Collection period and completion time are only meaningful for the online arm: a paper
+# form's SubmissionDate/duration record when staff later transcribed it, not when the
+# patient actually filled it in (paper collection dates are given in the prose below instead).
 dates <- raw |>
+  filter(!is_paper) |>
   mutate(submit_dt = lubridate::mdy_hms(SubmissionDate)) |>
   summarise(first = min(submit_dt, na.rm = TRUE), last = max(submit_dt, na.rm = TRUE))
 
-med_duration <- median(survey$duration, na.rm = TRUE) / 60
+med_duration <- median(survey$duration[!survey$is_paper], na.rm = TRUE) / 60
 
 tibble(
-  Measure = c("Total submissions", "Consented (analysed below)", "Declined consent (online)",
-              "Collection period (online)", "Median completion time (online)"),
+  Measure = c("Total submissions", "Consented (analysed below)", "— Online", "— Paper",
+              "Declined consent (online)", "Collection period (online)",
+              "Median completion time (online)"),
   Value = c(
     n_total,
     n_consented,
+    n_online,
+    n_paper,
     n_declined,
     paste(format(dates$first, "%d %b %Y"), "–", format(dates$last, "%d %b %Y")),
     paste0(round(med_duration, 1), " minutes")
