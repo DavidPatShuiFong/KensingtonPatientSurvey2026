@@ -130,6 +130,17 @@ defined in `` `r form_path` ``; the P3CEQ instrument and its official scoring ru
 
 raw <- read_csv(csv_path, show_col_types = FALSE, name_repair = "minimal")
 
+# Entries copied in from a paper survey are marked in q1_comment with "PAPER" optionally
+# followed by a number (e.g. "PAPER1", "PAPER 12"). Flag those rows, then strip the marker
+# out of q1_comment so it doesn't show up as if it were part of the patient's comment.
+paper_marker <- regex("PAPER\\s*\\d*")
+raw <- raw |>
+  mutate(
+    # coalesce so a blank q1_comment (str_detect would return NA) reads as "not paper", not NA
+    is_paper = coalesce(str_detect(q1_comment, paper_marker), FALSE),
+    q1_comment = str_remove(q1_comment, paper_marker) |> str_squish() |> na_if("")
+  )
+
 form_survey  <- read_excel(form_path, sheet = "survey")  |> select(type, name, label)
 form_choices <- read_excel(form_path, sheet = "choices") |> mutate(value = as.character(value))
 
