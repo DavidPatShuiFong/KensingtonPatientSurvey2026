@@ -415,6 +415,24 @@ conditions |>
        subtitle = paste0("Out of ", n_consented, " respondents; multiple selections allowed"))
 ```
 
+Q9 also lets respondents specify "Other long-term condition(s)" as free text. `q9_other` holds
+what respondents typed in; below are those responses as given, one row per respondent.
+
+```{r}
+#| label: tbl-conditions-other
+#| tbl-cap: "Q9 \"Other long-term condition(s)\": free-text responses"
+
+other_conditions <- survey |>
+  mutate(q9_other = str_squish(q9_other)) |>
+  filter(!is.na(q9_other), q9_other != "") |>
+  transmute(`Free-text response` = q9_other)
+
+kable(other_conditions, align = "l")
+```
+
+`r nrow(other_conditions)` free-text responses, out of `r conditions$n[conditions$label == "Other long-term condition(s) (please specify)"]`
+respondents who selected "Other long-term condition(s)".
+
 ## Respondent profile
 
 ```{r}
