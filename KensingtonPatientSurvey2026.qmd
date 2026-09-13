@@ -306,8 +306,8 @@ p3ceq |>
 
 ### Care coordination subscale vs PaRIS 2023
 
-cohealth Kensington general practice previously conducted the P3CEQ survey in 2023 as part of PaRIS [@paris].
-As pat of PaRIS, 193 patients aged 45+ years of the cohealth Kensington clinic returned a survey.
+cohealth Kensington general practice previously conducted the P3CEQ survey in 2023 as part of PaRIS [ACSQHC, -@paris].
+193 patients aged 45+ years of the cohealth Kensington clinic returned a PaRIS survey.
 
 PaRIS reported the P3CEQ care coordination (CC) subscale breakdown, comparing Kensington's own patients
 against a national comparison group (see `P3CEQ coordinated care subscale PaRIS 2023.png`).
@@ -518,6 +518,94 @@ kable(other_conditions, align = "l")
 
 `r nrow(other_conditions)` free-text responses, out of `r conditions$n[conditions$label == "Other long-term condition(s) (please specify)"]`
 respondents who selected "Other long-term condition(s)".
+
+### Multiple chronic conditions vs PaRIS 2025
+
+The 2025 PaRIS Australian national report includes a chart of how many chronic conditions
+patients aged 45+ report having, among patients who report at least one (see
+`PaRIS 2025 multiple chronic conditions.png`). The same measure is replicated below from Q9,
+split by age band, and compared to that report's Australia and OECD PaRIS averages.
+
+```{r}
+#| label: fig-multiple-conditions
+#| fig-cap: "Number of long-term conditions, among respondents reporting at least one"
+#| fig-width: 9
+#| fig-height: 6
+
+# Number of conditions = count of actual conditions ticked in Q9 (q9_1..q9_12), excluding the
+# "I have never been told..." option (q9_13, not a condition). Binned at 6+ to match the PaRIS chart.
+num_conditions <- survey |>
+  transmute(
+    KEY,
+    n_conditions = rowSums(across(matches("^q9_(1|2|3|4|5|6|7|8|9|10|11|12)$")), na.rm = TRUE),
+    age_group = case_when(
+      q26 %in% c(1, 2) ~ "under45",
+      q26 %in% c(3, 4) ~ "45plus",
+      TRUE             ~ "unspecified" # q26 == 5 ("Don't wish to say") or blank
+    )
+  )
+
+n_kensington <- num_conditions |>
+  filter(n_conditions >= 1) |>
+  count(age_group, name = "n_group")
+
+kensington_dist <- num_conditions |>
+  filter(n_conditions >= 1) |>
+  mutate(n_conditions = pmin(n_conditions, 6)) |>
+  count(age_group, n_conditions) |>
+  left_join(n_kensington, by = "age_group") |>
+  mutate(pct = n / n_group * 100) |>
+  select(age_group, n_conditions, pct, n_group)
+
+age_group_labels <- c(
+  `45plus`      = paste0("Kensington 2026, 45+ (n=", n_kensington$n_group[n_kensington$age_group == "45plus"], ")"),
+  under45       = paste0("Kensington 2026, under 45 (n=", n_kensington$n_group[n_kensington$age_group == "under45"], ")"),
+  unspecified   = paste0("Kensington 2026, age not stated (n=", n_kensington$n_group[n_kensington$age_group == "unspecified"], ")")
+)
+
+kensington_long <- kensington_dist |>
+  mutate(series = age_group_labels[age_group]) |>
+  select(series, n_conditions, pct)
+
+# Read off "PaRIS 2025 multiple chronic conditions.png" by measuring the stacked-bar segment
+# widths for the Australia and OECD PaRIS rows (no digital source for the underlying values was
+# available - the chart has no printed data labels) - approximate to the nearest whole percent.
+paris_2025 <- tribble(
+  ~series,                    ~n_conditions, ~pct,
+  "Australia (PaRIS 2025)",   1,             27,
+  "Australia (PaRIS 2025)",   2,             30,
+  "Australia (PaRIS 2025)",   3,             23,
+  "Australia (PaRIS 2025)",   4,             13,
+  "Australia (PaRIS 2025)",   5,             5,
+  "Australia (PaRIS 2025)",   6,             2,
+  "OECD average (PaRIS 2025)",1,             35,
+  "OECD average (PaRIS 2025)",2,             30,
+  "OECD average (PaRIS 2025)",3,             19,
+  "OECD average (PaRIS 2025)",4,             10,
+  "OECD average (PaRIS 2025)",5,             4,
+  "OECD average (PaRIS 2025)",6,             2
+)
+
+series_order <- c(age_group_labels[c("45plus", "under45", "unspecified")],
+                   "Australia (PaRIS 2025)", "OECD average (PaRIS 2025)")
+
+conditions_compare <- bind_rows(kensington_long, paris_2025) |>
+  mutate(
+    series = factor(series, levels = series_order),
+    n_conditions = factor(n_conditions, levels = 1:6, labels = c("1", "2", "3", "4", "5", "6 or more"))
+  )
+
+conditions_compare |>
+  ggplot(aes(n_conditions, pct)) +
+  geom_col(fill = pal_blue, width = 0.7) +
+  geom_text(aes(label = paste0(round(pct), "%")), vjust = -0.4, size = 3, colour = ink_secondary) +
+  scale_y_continuous(limits = c(0, max(conditions_compare$pct, na.rm = TRUE) * 1.15),
+                      expand = expansion(mult = c(0, 0.02))) +
+  facet_wrap(~series, ncol = 3) +
+  labs(x = "Number of long-term conditions", y = "Share of respondents with 1+ condition") +
+  theme(strip.text = element_text(face = "bold", colour = ink_primary, hjust = 0),
+        panel.spacing = unit(1.2, "lines"))
+```
 
 ## Respondent profile
 
