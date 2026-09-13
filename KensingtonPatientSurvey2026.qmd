@@ -521,19 +521,21 @@ respondents who selected "Other long-term condition(s)".
 
 ### Multiple chronic conditions vs PaRIS 2025
 
-The 2025 PaRIS Australian national report includes a chart of how many chronic conditions
-patients aged 45+ report having, among patients who report at least one (see
-`PaRIS 2025 multiple chronic conditions.png`). The same measure is replicated below from Q9,
-split by age band, and compared to that report's Australia and OECD PaRIS averages.
+The 2025 PaRIS Australian national report states that 64% of patients aged 45+ reported having
+at least one chronic condition (see `PaRIS 2025 Australia chronic conditions.png`). That report
+otherwise defines "patients" as respondents aged 45+ who *already* report 1+ chronic condition
+(a footnote in the source document) - so this 64% figure is the one place it reports prevalence
+among *all* respondents aged 45+, rather than among that already-restricted "patients" group.
+The comparable Kensington 2026 figure is below.
 
 ```{r}
-#| label: fig-multiple-conditions
-#| fig-cap: "Number of long-term conditions, among respondents reporting at least one"
-#| fig-width: 9
-#| fig-height: 6
+#| label: fig-any-condition
+#| fig-cap: "Any long-term condition, respondents aged 45+: Kensington 2026 vs PaRIS Australia 2025"
+#| fig-width: 5
+#| fig-height: 3
 
 # Number of conditions = count of actual conditions ticked in Q9 (q9_1..q9_12), excluding the
-# "I have never been told..." option (q9_13, not a condition). Binned at 6+ to match the PaRIS chart.
+# "I have never been told..." option (q9_13, not a condition).
 num_conditions <- survey |>
   transmute(
     KEY,
@@ -544,6 +546,38 @@ num_conditions <- survey |>
       TRUE             ~ "unspecified" # q26 == 5 ("Don't wish to say") or blank
     )
   )
+
+n_45plus_total <- sum(num_conditions$age_group == "45plus")
+n_45plus_any   <- sum(num_conditions$age_group == "45plus" & num_conditions$n_conditions >= 1)
+pct_45plus_any <- n_45plus_any / n_45plus_total * 100
+
+any_condition_compare <- tibble(
+  series = factor(c("Kensington 2026", "Australia (PaRIS 2025)"),
+                   levels = c("Kensington 2026", "Australia (PaRIS 2025)")),
+  pct = c(pct_45plus_any, 64) # Australia figure quoted directly in "PaRIS 2025 Australia chronic conditions.png"
+)
+
+any_condition_compare |>
+  ggplot(aes(series, pct)) +
+  geom_col(fill = pal_blue, width = 0.5) +
+  geom_text(aes(label = paste0(round(pct), "%")), vjust = -0.4, size = 4.5, colour = ink_secondary) +
+  scale_y_continuous(limits = c(0, max(any_condition_compare$pct) * 1.15)) +
+  labs(x = NULL, y = "Share of respondents aged 45+\nwith 1+ long-term condition")
+```
+
+`r n_45plus_any` of `r n_45plus_total` respondents aged 45+ (`r round(pct_45plus_any)`%) report at
+least one long-term condition, vs. 64% in the PaRIS Australia 2025 report.
+
+The same report also includes a chart of how many conditions patients aged 45+ report having,
+among patients who report at least one (see `PaRIS 2025 multiple chronic conditions.png`). The
+same measure is replicated below from Q9, split by age band, and compared to that report's
+Australia and OECD PaRIS averages.
+
+```{r}
+#| label: fig-multiple-conditions
+#| fig-cap: "Number of long-term conditions, among respondents reporting at least one"
+#| fig-width: 9
+#| fig-height: 6
 
 n_kensington <- num_conditions |>
   filter(n_conditions >= 1) |>
