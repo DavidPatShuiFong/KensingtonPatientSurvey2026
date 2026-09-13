@@ -58,6 +58,19 @@ references:
     accessed:
       date-parts:
         - [2026, 9, 12]
+  - type: report
+    id: oecd-paris
+    author:
+      - family: "OECD"
+    publisher: "OECD Publishing"
+    location: "Paris"
+    title: "Does Healthcare Deliver?: Results from the Patient-Reported Indicator Surveys (PaRIS)"
+    shorttitle:
+      - literal: "Does Healthcare Deliver?: Results from the Patient-Reported Indicator Surveys (PaRIS)"
+    url: "https://doi.org/10.1787/c8af05a5-en"
+    DOI: "10.1787/c8af05a5-en"
+    issued:
+      year: 2025
 editor: source
 ---
 
@@ -522,11 +535,7 @@ respondents who selected "Other long-term condition(s)".
 ### Multiple chronic conditions vs PaRIS 2025
 
 The 2025 PaRIS Australian national report states that 64% of patients aged 45+ reported having
-at least one chronic condition (see `PaRIS 2025 Australia chronic conditions.png`). That report
-otherwise defines "patients" as respondents aged 45+ who *already* report 1+ chronic condition
-(a footnote in the source document) - so this 64% figure is the one place it reports prevalence
-among *all* respondents aged 45+, rather than among that already-restricted "patients" group.
-The comparable Kensington 2026 figure is below.
+at least one chronic condition [ACSQHC, -@paris].
 
 ```{r}
 #| label: fig-any-condition
@@ -565,13 +574,12 @@ any_condition_compare |>
   labs(x = NULL, y = "Share of respondents aged 45+\nwith 1+ long-term condition")
 ```
 
-`r n_45plus_any` of `r n_45plus_total` respondents aged 45+ (`r round(pct_45plus_any)`%) report at
-least one long-term condition, vs. 64% in the PaRIS Australia 2025 report.
+In this survey, `r n_45plus_any` of `r n_45plus_total` respondents aged 45+ (`r round(pct_45plus_any)`%)
+from cohealth Kensington report at least one long-term condition, vs. 64% in the PaRIS Australia 2025 report.
 
-The same report also includes a chart of how many conditions patients aged 45+ report having,
-among patients who report at least one (see `PaRIS 2025 multiple chronic conditions.png`). The
-same measure is replicated below from Q9, split by age band, and compared to that report's
-Australia and OECD PaRIS averages.
+@oecd-paris describes the number of reported chronic conditions per patient, 
+among patients aged 45+ report who report having at least one condition.
+Australian and OECD figures are compared below to survey respondents from cohealth Kensington 2026, split by age band.
 
 ```{r}
 #| label: fig-multiple-conditions
@@ -643,11 +651,10 @@ conditions_compare |>
 
 ### Most reported chronic conditions vs PaRIS 2025
 
-`PaRIS 2025 Australia chronic conditions.png` also includes a "Figure 1" comparing Australia and
-OECD-average patients aged 45+ on which specific chronic conditions they report - again among
-patients who report at least one. The same breakdown is replicated below from Q9, restricted to
-Kensington respondents aged 45+ with 1+ condition (the same `r n_45plus_any`-respondent base as
-the chart above).
+ACSQHC [-@paris] compares the specific chronic conditions reported among Australia and
+OECD patients aged 45+ (and who report at least one chronic condition).
+These statistics are compared to Kensington respondents aged 45+ with 1+ condition 
+(`r n_45plus_any` survey respondents).
 
 ```{r}
 #| label: fig-conditions-paris
