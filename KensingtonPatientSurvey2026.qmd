@@ -135,7 +135,7 @@ care coordination and demographic questions from "Standards for general practice
 and the validated **P3CEQ** (Person Centred Coordinated Care Experiences Questionnaire) [@p3c_p3c-eq].
 
 Full item wording and response options are
-defined in `` `r form_path` ``; the P3CEQ instrument and its official scoring rules are documented in
+defined in `` `r form_path` ``; the P3CEQ instrument and its scoring rules are documented in
 `P3C-PEQ with scoring.pdf`.
 
 ```{r}
@@ -384,6 +384,77 @@ ggplot(cc_compare, aes(pct, fct_rev(band), fill = series)) +
   # the dodge order of the bars themselves (series factor levels stay as-is - this only reorders
   # the legend keys, not the fill scale or bar positions)
   guides(fill = guide_legend(reverse = TRUE))
+```
+
+### Confidence to self-manage and person-centred care vs PaRIS10 Dashboard 2024
+
+The OECD's PaRIS10 Dashboard [OECD, -@oecd-paris] benchmarks two further P3CEQ-derived
+measures for primary care users aged 45+ living with one or more chronic conditions:
+**confidence to self-manage** (a single item — "how confident are you that you can manage your
+own health and well-being?" — positive if confident/very confident) and **person-centred care**
+(the PC subscale above, out of 24, positive if the score is 12 or more).
+
+```{r}
+#| label: paris10-dashboard-compare
+
+paris10_data <- p3ceq |>
+  left_join(
+    survey |>
+      transmute(KEY, q26,
+                n_conditions = rowSums(across(matches("^q9_(1|2|3|4|5|6|7|8|9|10|11|12)$")), na.rm = TRUE)),
+    by = "KEY"
+  ) |>
+  filter(q26 %in% c(3, 4), n_conditions >= 1) # age 45+ (per q26opts) with 1+ long-term condition
+
+n_paris10 <- nrow(paris10_data)
+
+avg_pc_2026     <- mean(paris10_data$pc_subscale, na.rm = TRUE)
+pct_pc_pos_2026 <- mean(paris10_data$pc_subscale >= 12, na.rm = TRUE) * 100
+pct_conf_2026   <- mean(paris10_data$p10 >= 2, na.rm = TRUE) * 100 # p10 = recoded q19; 2="Confident", 3="Very confident"
+
+# Australia and OECD PaRIS figures are read directly off "PaRIS OECD PaRIS10 Dashboard.png"
+# (Table 2.2, OECD "Does Healthcare Deliver?" report [@oecd-paris]) - the % reporting a positive
+# outcome for each measure, among primary care users aged 45+ with 1+ chronic condition
+# (age-sex standardised for OECD/Australia; Kensington's figure below is unstandardised).
+paris10_compare <- tribble(
+  ~measure,                    ~series,                   ~pct,
+  "Confidence to self-manage", "Kensington 2026",         pct_conf_2026,
+  "Confidence to self-manage", "Australia (PaRIS 2024)",  61,
+  "Confidence to self-manage", "OECD PaRIS (2024)",       59,
+  "Person-centred care",       "Kensington 2026",         pct_pc_pos_2026,
+  "Person-centred care",       "Australia (PaRIS 2024)",  93,
+  "Person-centred care",       "OECD PaRIS (2024)",       87
+) |>
+  mutate(
+    series  = factor(series, levels = c("Kensington 2026", "Australia (PaRIS 2024)", "OECD PaRIS (2024)")),
+    measure = factor(measure, levels = c("Confidence to self-manage", "Person-centred care"))
+  )
+```
+
+Among respondents aged 45+ with a long-term condition (n = `r n_paris10`):
+
+- **Confidence to self-manage**: `r round(pct_conf_2026)`% reported being confident or very
+  confident in managing their own health and well-being, compared with 61% for Australia and 59%
+  for the OECD PaRIS average.
+- **Person-centred care**: average PC subscale score `r round(avg_pc_2026, 1)` out of 24
+  (`r round(pct_pc_pos_2026)`% scoring 12 or more, i.e. a "positive" experience), compared with
+  18.1 (93%) for Australia and 16.6 (87%) for the OECD PaRIS average.
+
+```{r}
+#| label: fig-paris10-dashboard
+#| fig-cap: "Confidence to self-manage and person-centred care vs PaRIS10 Dashboard 2024, patients aged 45+ with 1+ chronic condition"
+#| fig-width: 8
+#| fig-height: 4.5
+
+ggplot(paris10_compare, aes(series, pct, fill = series)) +
+  geom_col(width = 0.6) +
+  geom_text(aes(label = paste0(round(pct), "%")), vjust = -0.4, size = 3.5, colour = ink_secondary) +
+  facet_wrap(~measure) +
+  scale_fill_manual(values = pal_cat[1:3]) +
+  scale_y_continuous(limits = c(0, 100)) +
+  labs(x = NULL, y = "Share reporting a positive outcome") +
+  theme(legend.position = "none",
+        axis.text.x = element_text(angle = 20, hjust = 1))
 ```
 
 ### Item-level results
@@ -862,6 +933,32 @@ Question 21 asked what one thing respondents would change about the practice.
 
 comment_table("q21", "Suggested changes")
 ```
+:::
+
+::: {.content-visible when-format="html"}
+<script>
+// Appends a "View source on GitHub" link below the table of contents in the
+// HTML sidebar. Injected via JS (rather than placed in the document body)
+// because the sidebar TOC is generated separately by the Quarto/pandoc
+// template - markdown content here would render in the main article column,
+// not the sidebar.
+document.addEventListener("DOMContentLoaded", function () {
+  var sidebar = document.querySelector("#quarto-margin-sidebar");
+  if (!sidebar) return;
+  var div = document.createElement("div");
+  div.className = "toc-source-link";
+  div.style.marginTop = "1em";
+  div.innerHTML =
+    '<a href="https://github.com/DavidPatShuiFong/KensingtonPatientSurvey2026/" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:0.4em;font-size:0.9em;">' +
+    '<svg height="16" viewBox="0 0 16 16" width="16" aria-hidden="true" style="fill:currentColor;"><path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"></path></svg>' +
+    "View source on GitHub</a>";
+  sidebar.appendChild(div);
+});
+</script>
+:::
+
+::: {.content-visible when-format="pdf"}
+**Source code:** <https://github.com/DavidPatShuiFong/KensingtonPatientSurvey2026/>
 :::
 
 ## References {-}
