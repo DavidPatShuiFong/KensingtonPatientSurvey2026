@@ -1,6 +1,7 @@
 ---
 title: "cohealth Kensington GP Clinic — Patient Feedback Survey 2026"
 subtitle: "P3CEQ person-centred care results and patient experience summary"
+number-sections: true
 date: today
 format:
   html:
@@ -71,6 +72,32 @@ references:
     DOI: "10.1787/c8af05a5-en"
     issued:
       year: 2025
+  - type: article-journal
+    id: groenewegen2024
+    author:
+      - family: "Groenewegen"
+        given: "Peter"
+      - family: "Spreeuwenberg"
+        given: "Peter"
+      - family: "Timans"
+        given: "Rob"
+      - family: "Groene"
+        given: "Oliver"
+      - family: "Suñol"
+        given: "Rosa"
+      - family: "Valderas"
+        given: "Jose Maria"
+      - family: "Rijken"
+        given: "Mieke"
+    title: "Data analysis plan of the OECD PaRIS survey: leveraging a multi-level approach to analyse data collected from people living with chronic conditions and their primary care practices in 20 countries"
+    container-title: "BMC Research Notes"
+    volume: 17
+    page: "157"
+    url: "https://doi.org/10.1186/s13104-024-06815-7"
+    DOI: "10.1186/s13104-024-06815-7"
+    issued:
+      date-parts:
+        - [2024]
 editor: source
 ---
 
@@ -254,7 +281,7 @@ recode_q18     <- function(x) case_when(x == 1 ~ 0, x == 2 ~ 1, x == 3 ~ 2, x ==
 recode_q19     <- function(x) case_when(x == 1 ~ 3, x == 2 ~ 2, x == 3 ~ 1, x == 4 ~ 0, x == 5 ~ 0, TRUE ~ NA_real_)
 
 p3ceq <- survey |>
-  transmute(
+  mutate(
     KEY,
     p1  = recode_yesdef(q4),
     p2  = recode_yesdef(q5),
@@ -268,7 +295,8 @@ p3ceq <- survey |>
     p7d = recode_extent5(q16),
     p8  = recode_q17(q17),
     p9  = recode_q18(q18),
-    p10 = recode_q19(q19)
+    p10 = recode_q19(q19),
+    .keep = "none"
   ) |>
   mutate(
     p7 = if_else(p7a == 0, 0, rowMeans(cbind(p7a, p7b, p7c, p7d), na.rm = FALSE))
@@ -394,34 +422,79 @@ measures for primary care users aged 45+ living with one or more chronic conditi
 own health and well-being?" — positive if confident/very confident) and **person-centred care**
 (the PC subscale above, out of 24, positive if the score is 12 or more).
 
+The Australia and OECD PaRIS figures below are age-sex standardised to the OECD PaRIS standard
+population [@oecd-paris; @groenewegen2024]; Kensington's figures are standardised to the same
+reference population to keep the comparison fair (see [Notes](#sec-standardisation) for how).
+
 ```{r}
 #| label: paris10-dashboard-compare
 
 paris10_data <- p3ceq |>
   left_join(
     survey |>
-      transmute(KEY, q26,
-                n_conditions = rowSums(across(matches("^q9_(1|2|3|4|5|6|7|8|9|10|11|12)$")), na.rm = TRUE)),
+      mutate(
+        KEY, q22, q26,
+        n_conditions = rowSums(across(matches("^q9_(1|2|3|4|5|6|7|8|9|10|11|12)$")), na.rm = TRUE),
+        .keep = "none"
+      ),
     by = "KEY"
   ) |>
   filter(q26 %in% c(3, 4), n_conditions >= 1) # age 45+ (per q26opts) with 1+ long-term condition
 
-n_paris10 <- nrow(paris10_data)
+n_paris10          <- nrow(paris10_data)
+n_paris10_nogender <- sum(is.na(paris10_data$q22)) # unanswered Q22 - excluded below, no stratum to assign
 
+# ---- age-sex standardisation to the OECD PaRIS standard population -------------------------
+# Table 7.5 of @oecd-paris (Section 7.7.2) gives the OECD-PaRIS standard population as two
+# marginal distributions, not a joint age-by-sex table: age in four bands (45-54 25%, 55-64 28%,
+# 65-74 27%, 75+ 20%) and sex (women 55%, men 45%). Kensington's q26 only distinguishes 45-64 vs
+# 65+, so those OECD age bands are collapsed to match (45-64 -> 53%, 65+ -> 47%) and combined with
+# sex assuming independence (the OECD report doesn't publish the cross-tabulation) into four
+# stratum weights, used to directly reweight Kensington's own stratum estimates - the saturated
+# special case of the re-centred-regression method in the PaRIS data analysis plan
+# [@groenewegen2024].
+oecd_std_weights <- tribble(
+  ~q26, ~q22, ~std_weight,
+  3,    1,    0.53 * 0.45, # 45-64, Male
+  3,    2,    0.53 * 0.55, # 45-64, Female
+  4,    1,    0.47 * 0.45, # 65+, Male
+  4,    2,    0.47 * 0.55  # 65+, Female
+)
+
+paris10_strata <- paris10_data |>
+  filter(!is.na(q22)) |>
+  group_by(q26, q22) |>
+  summarise(
+    n          = n(),
+    pct_conf   = mean(p10 >= 2, na.rm = TRUE) * 100, # p10 = recoded q19; 2="Confident", 3="Very confident"
+    pct_pc_pos = mean(pc_subscale >= 12, na.rm = TRUE) * 100,
+    avg_pc     = mean(pc_subscale, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  left_join(oecd_std_weights, by = c("q26", "q22"))
+
+standardise <- function(x) weighted.mean(x, paris10_strata$std_weight)
+
+pct_conf_2026_std   <- standardise(paris10_strata$pct_conf)
+pct_pc_pos_2026_std <- standardise(paris10_strata$pct_pc_pos)
+avg_pc_2026_std     <- standardise(paris10_strata$avg_pc)
+
+# Crude (unstandardised) figures, kept for reference alongside the standardised ones above.
 avg_pc_2026     <- mean(paris10_data$pc_subscale, na.rm = TRUE)
 pct_pc_pos_2026 <- mean(paris10_data$pc_subscale >= 12, na.rm = TRUE) * 100
-pct_conf_2026   <- mean(paris10_data$p10 >= 2, na.rm = TRUE) * 100 # p10 = recoded q19; 2="Confident", 3="Very confident"
+pct_conf_2026   <- mean(paris10_data$p10 >= 2, na.rm = TRUE) * 100
 
 # Australia and OECD PaRIS figures are read directly off "PaRIS OECD PaRIS10 Dashboard.png"
 # (Table 2.2, OECD "Does Healthcare Deliver?" report [@oecd-paris]) - the % reporting a positive
-# outcome for each measure, among primary care users aged 45+ with 1+ chronic condition
-# (age-sex standardised for OECD/Australia; Kensington's figure below is unstandardised).
+# outcome for each measure, among primary care users aged 45+ with 1+ chronic condition, age-sex
+# standardised to the OECD PaRIS standard population; Kensington's figures below are standardised
+# the same way (see above).
 paris10_compare <- tribble(
   ~measure,                    ~series,                   ~pct,
-  "Confidence to self-manage", "Kensington 2026",         pct_conf_2026,
+  "Confidence to self-manage", "Kensington 2026",         pct_conf_2026_std,
   "Confidence to self-manage", "Australia (PaRIS 2024)",  61,
   "Confidence to self-manage", "OECD PaRIS (2024)",       59,
-  "Person-centred care",       "Kensington 2026",         pct_pc_pos_2026,
+  "Person-centred care",       "Kensington 2026",         pct_pc_pos_2026_std,
   "Person-centred care",       "Australia (PaRIS 2024)",  93,
   "Person-centred care",       "OECD PaRIS (2024)",       87
 ) |>
@@ -431,18 +504,21 @@ paris10_compare <- tribble(
   )
 ```
 
-Among respondents aged 45+ with a long-term condition (n = `r n_paris10`):
+Among respondents aged 45+ with a long-term condition (n = `r n_paris10`; `r n_paris10_nogender`
+did not answer Q22 and are excluded from standardisation), age-sex standardised to the OECD PaRIS
+standard population:
 
-- **Confidence to self-manage**: `r round(pct_conf_2026)`% reported being confident or very
-  confident in managing their own health and well-being, compared with 61% for Australia and 59%
-  for the OECD PaRIS average.
-- **Person-centred care**: average PC subscale score `r round(avg_pc_2026, 1)` out of 24
-  (`r round(pct_pc_pos_2026)`% scoring 12 or more, i.e. a "positive" experience), compared with
-  18.1 (93%) for Australia and 16.6 (87%) for the OECD PaRIS average.
+- **Confidence to self-manage**: `r round(pct_conf_2026_std)`% reported being confident or very
+  confident in managing their own health and well-being (`r round(pct_conf_2026)`% unstandardised),
+  compared with 61% for Australia and 59% for the OECD PaRIS average.
+- **Person-centred care**: average PC subscale score `r round(avg_pc_2026_std, 1)` out of 24
+  (`r round(pct_pc_pos_2026_std)`% scoring 12 or more, i.e. a "positive" experience; unstandardised:
+  `r round(avg_pc_2026, 1)`, `r round(pct_pc_pos_2026)`%), compared with 18.1 (93%) for Australia
+  and 16.6 (87%) for the OECD PaRIS average.
 
 ```{r}
 #| label: fig-paris10-dashboard
-#| fig-cap: "Confidence to self-manage and person-centred care vs PaRIS10 Dashboard 2024, patients aged 45+ with 1+ chronic condition"
+#| fig-cap: "Confidence to self-manage and person-centred care vs PaRIS10 Dashboard 2024, patients aged 45+ with 1+ chronic condition (age-sex standardised)"
 #| fig-width: 8
 #| fig-height: 4.5
 
@@ -534,29 +610,9 @@ rate7_long |>
   theme(legend.position = "top")
 ```
 
-```{r}
-#| label: rate7-comments
-
-comment_table <- function(var, heading) {
-  txt <- survey[[var]][!is.na(survey[[var]]) & str_trim(survey[[var]]) != ""]
-  if (length(txt) == 0) return(invisible(NULL))
-  cat("\n**", heading, "** (", length(txt), " comments)\n\n", sep = "")
-  cat(paste0("- ", txt, collapse = "\n"), "\n")
-}
-```
-
-::: {.callout-note collapse="true"}
-## Free-text comments on reception, privacy and coordination
-
-```{r}
-#| label: rate7-comments-out
-#| results: asis
-
-comment_table("q1_comment", "Reception staff")
-comment_table("q2_comment", "Privacy")
-comment_table("q3_comment", "Coordination with other healthcare professionals")
-```
-:::
+Patients were invited to 'free-text' comment on their experience with reception, privacy
+and coordination. These comments can be read in
+[What patients said](#sec-comment_racgp_q).
 
 ## Long-term conditions
 
@@ -599,7 +655,7 @@ what respondents typed in; below are those responses as given, one row per respo
 other_conditions <- survey |>
   mutate(q9_other = str_squish(q9_other)) |>
   filter(!is.na(q9_other), q9_other != "") |>
-  transmute(`Free-text response` = q9_other)
+  mutate(`Free-text response` = q9_other, .keep = "none")
 
 kable(other_conditions, align = "l")
 ```
@@ -621,14 +677,15 @@ at least one chronic condition [ACSQHC, -@paris].
 # Number of conditions = count of actual conditions ticked in Q9 (q9_1..q9_12), excluding the
 # "I have never been told..." option (q9_13, not a condition).
 num_conditions <- survey |>
-  transmute(
+  mutate(
     KEY,
     n_conditions = rowSums(across(matches("^q9_(1|2|3|4|5|6|7|8|9|10|11|12)$")), na.rm = TRUE),
     age_group = case_when(
       q26 %in% c(1, 2) ~ "under45",
       q26 %in% c(3, 4) ~ "45plus",
       TRUE             ~ "unspecified" # q26 == 5 ("Don't wish to say") or blank
-    )
+    ),
+    .keep = "none"
   )
 
 n_45plus_total <- sum(num_conditions$age_group == "45plus")
@@ -920,12 +977,42 @@ other_langs |>
                           languages$n[languages$label == "Other"], " respondents who selected \"Other\""))
 ```
 
-## What patients said
+## What patients said {#sec-comment_racgp_q}
+
+Questions 1, 2 and 3 invited respondents to comment on reception, privacy and coordination.
+
+```{r}
+#| label: rate7-comments
+
+comment_table <- function(var, heading) {
+  txt <- survey[[var]][!is.na(survey[[var]]) & str_trim(survey[[var]]) != ""]
+  if (length(txt) == 0) return(invisible(NULL))
+  # A respondent's free text can itself contain a line break (or blank line); left as-is that
+  # reads to pandoc as ending the list item, so the rest of the comment spills out as its own
+  # paragraph or a separate bullet. Squish each comment onto one line first so it stays one item.
+  txt <- str_squish(txt)
+  cat("\n**", heading, "** (", length(txt), " comments)\n\n", sep = "")
+  cat(paste0("- ", txt, collapse = "\n"), "\n")
+}
+```
+
+::: {.callout-note collapse="true"}
+### Free-text comments on reception, privacy and coordination
+
+```{r}
+#| label: rate7-comments-out
+#| results: asis
+
+comment_table("q1_comment", "Reception staff")
+comment_table("q2_comment", "Privacy")
+comment_table("q3_comment", "Coordination with other healthcare professionals")
+```
+:::
 
 Question 21 asked what one thing respondents would change about the practice.
 
 ::: {.callout-note collapse="true"}
-## Free-text: "If you could change one thing about the practice..." (Q21)
+### Free-text: "If you could change one thing about the practice..." (Q21)
 
 ```{r}
 #| label: q21-comments
@@ -960,6 +1047,29 @@ document.addEventListener("DOMContentLoaded", function () {
 ::: {.content-visible when-format="pdf"}
 **Source code:** <https://github.com/DavidPatShuiFong/KensingtonPatientSurvey2026/>
 :::
+
+## Notes
+
+### Age-sex standardisation {#sec-standardisation}
+
+The Australia and OECD PaRIS figures in [Confidence to self-manage and person-centred care vs
+PaRIS10 Dashboard 2024](#confidence-to-self-manage-and-person-centred-care-vs-paris10-dashboard-2024)
+are age-sex standardised: each country's raw estimate is reweighted to the *PaRIS standard
+population* — a reference age (four bands: 45–54, 55–64, 65–74, 75+) and sex (male/female)
+distribution for PaRIS-eligible patients aged 45+, built from the 17 participating OECD member
+countries' own standard populations [@oecd-paris, Table 7.5] — via a multilevel regression with
+re-centred age/sex predictors [@groenewegen2024], rather than each country's raw sample
+composition.
+
+To keep Kensington comparable, its figures in that section are age-sex standardised the same way:
+respondents are split into the four age × sex strata that `q26` (45–64 / 65+) and `q22`
+(male/female) support, and each stratum's estimate is reweighted to the OECD standard population's
+age (collapsed to Kensington's two age bands: 53% 45–64, 47% 65+) and sex (55% female, 45% male)
+shares, assumed independent of one another since the OECD report publishes only these two marginal
+distributions, not their cross-tabulation. This direct stratum-reweighting is the saturated
+(fully-interacted) special case of Groenewegen et al.'s re-centred-regression standardisation
+method [-@groenewegen2024] — appropriate here since Kensington is a single site with no
+practice/country clustering to model.
 
 ## References {-}
 
