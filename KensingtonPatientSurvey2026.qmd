@@ -633,6 +633,28 @@ summarise_multiselect <- function(data, prefix, list_name) {
     arrange(desc(n))
 }
 
+# Unlike summarise_multiselect() above (one bar per option, so a respondent who selected several
+# options is counted on several bars), this gives each respondent's full combination of selected
+# options its own bar - needed for Q28, where holding more than one concession card is common and
+# would otherwise be double-counted across the individual-card bars.
+summarise_multiselect_combos <- function(data, prefix, list_name) {
+  labs <- choice_labels(list_name)
+  cols <- data |> select(matches(paste0("^", prefix, "_[0-9]+$")))
+  values <- str_remove(names(cols), paste0("^", prefix, "_"))
+  mat <- as.matrix(cols)
+  mat[is.na(mat)] <- 0
+  combo <- apply(mat, 1, function(row) {
+    selected <- values[row == 1]
+    if (length(selected) == 0) return(NA_character_) # skipped the question entirely
+    paste(labs[selected], collapse = " + ")
+  })
+  tibble(label = combo) |>
+    filter(!is.na(label)) |>
+    count(label, name = "n") |>
+    mutate(pct = n / nrow(data)) |>
+    arrange(desc(n))
+}
+
 conditions <- summarise_multiselect(survey, "q9", "conditions")
 
 conditions |>
@@ -783,8 +805,8 @@ conditions_compare |>
 
 ### Most reported chronic conditions vs PaRIS 2025
 
-ACSQHC [-@paris] compares the specific chronic conditions reported among Australia and
-OECD patients aged 45+ (and who report at least one chronic condition).
+ACSQHC [-@paris] compares the specific chronic conditions reported among Australia
+and OECD patients aged 45+ (and who report at least one chronic condition).
 These statistics are compared to Kensington respondents aged 45+ with 1+ condition 
 (`r n_45plus_any` survey respondents).
 
@@ -926,12 +948,15 @@ demo_long |>
 #| label: demographics-extra
 
 languages <- summarise_multiselect(survey, "q25", "languages")
-concession <- summarise_multiselect(survey, "q28", "q28opts")
+# Combination-based, not per-card: several respondents hold more than one concession card (e.g.
+# both a Health Care Card and a Pensioner Concession Card), so each held combination gets its own
+# bar rather than counting that respondent once per card.
+concession <- summarise_multiselect_combos(survey, "q28", "q28opts")
 ```
 
 ```{r}
 #| label: fig-languages
-#| fig-cap: "Languages spoken at home (Q25) and concession cards held (Q28)"
+#| fig-cap: "Languages spoken at home (Q25) and concession cards held (Q28, by combination held)"
 #| fig-width: 10
 #| fig-height: 4.5
 
@@ -939,7 +964,7 @@ bind_rows(
   languages |> mutate(facet = "Languages spoken at home (Q25)"),
   concession |> mutate(facet = "Concession cards held (Q28)")
 ) |>
-  mutate(label = fct_reorder(label, n)) |>
+  mutate(label = fct_reorder(str_wrap(label, 30), n)) |>
   ggplot(aes(n, label)) +
   geom_col(fill = pal_blue, width = 0.7) +
   geom_text(aes(label = n), hjust = -0.4, size = 3.2, colour = ink_secondary) +
@@ -950,10 +975,9 @@ bind_rows(
         panel.spacing.x = unit(1.4, "lines"))
 ```
 
-A large share of the Q25 "Other" responses come from a wide mix of languages, none individually
-common enough to be listed as its own choice on the form. `q25_other` holds what respondents
-typed in; below are those free-text responses as given (grouped only where the text matches
-exactly), most-common first.
+A large share of the Q25 "Other" responses come from a wide mix of languages.
+`q25_other` holds what respondents typed in; below are those free-text responses
+as given (grouped only where the text matches exactly), most-common first.
 
 ```{r}
 #| label: fig-languages-other
