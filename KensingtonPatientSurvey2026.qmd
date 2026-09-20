@@ -962,25 +962,10 @@ ggplot(subscale_summary, aes(condition_band, mean_score, group = subscale)) +
   theme(strip.text = element_text(face = "bold", colour = ink_primary, hjust = 0))
 ```
 
-```{r}
-#| label: tbl-p3ceq-subscales-by-conditions
-#| tbl-cap: "P3CEQ PC and CC subscale scores by number of long-term conditions: underlying means and sample sizes"
+#### RACGP care continuity and coordination questions
 
-subscale_summary |>
-  arrange(subscale, condition_band) |>
-  transmute(
-    `Number of conditions` = condition_band,
-    Subscale = subscale,
-    `Mean score` = round(mean_score, 1),
-    n
-  ) |>
-  kable(align = "llrr")
-```
-
-### Clinic-specific experience by number of conditions
-
-The same Q9-answered group is compared against the four clinic-specific coordination items from
-Q3 (reception/privacy items Q1–Q2 are excluded here since they aren't about care coordination):
+The same Q9-answered group is compared against the four care continuity and coordination items
+from the [RACGP patient feedback guide, -@racgppatientfeedbackguide]:
 "knew your medical history", "the clinician was aware of advice you had received from other health
 professionals", "coordinated different healthcare professionals" and "gave the right amount of
 information to other healthcare professionals". As in [Clinic-specific
@@ -1024,21 +1009,6 @@ ggplot(q3_summary, aes(condition_band, mean_rating, colour = item, group = item)
   # four long labels don't fit on one legend row without running off the right edge of the
   # figure (only 3 of the 4 series were visible) - force two rows so all four are shown
   guides(colour = guide_legend(nrow = 2, byrow = TRUE))
-```
-
-```{r}
-#| label: tbl-rate7-q3-by-conditions
-#| tbl-cap: "Q3 clinic-specific coordination items by number of long-term conditions: underlying means and sample sizes"
-
-q3_summary |>
-  arrange(item, condition_band) |>
-  transmute(
-    `Number of conditions` = condition_band,
-    Item = item,
-    `Mean rating` = number(mean_rating, accuracy = 0.1),
-    n
-  ) |>
-  kable(align = "llrr")
 ```
 
 ## Respondent profile
@@ -1203,21 +1173,6 @@ ggplot(language_summary, aes(language_group, mean_score)) +
   theme(strip.text = element_text(face = "bold", colour = ink_primary, hjust = 0))
 ```
 
-```{r}
-#| label: tbl-p3ceq-subscales-by-language
-#| tbl-cap: "P3CEQ PC and CC subscale scores by language spoken at home, respondents with 1+ long-term conditions: underlying means and sample sizes"
-
-language_summary |>
-  arrange(subscale, language_group) |>
-  transmute(
-    `Language spoken at home` = language_group,
-    Subscale = subscale,
-    `Mean score` = round(mean_score, 1),
-    n
-  ) |>
-  kable(align = "llrr")
-```
-
 ## What patients said {#sec-comment_racgp_q}
 
 Questions 1, 2 and 3 invited respondents to comment on reception, privacy and coordination.
@@ -1311,6 +1266,63 @@ distributions, not their cross-tabulation. This direct stratum-reweighting is th
 (fully-interacted) special case of Groenewegen et al.'s re-centred-regression standardisation
 method [-@groenewegen2024] — appropriate here since Kensington is a single site with no
 practice/country clustering to model.
+
+## Appendices {#sec-appendices}
+
+::: {.callout-note collapse="true"}
+### P3CEQ PC and CC subscale scores by number of long-term conditions: sample sizes
+
+```{r}
+#| label: tbl-p3ceq-subscales-by-conditions
+#| tbl-cap: "P3CEQ PC and CC subscale scores by number of long-term conditions: underlying means and sample sizes"
+
+subscale_summary |>
+  arrange(subscale, condition_band) |>
+  transmute(
+    `Number of conditions` = condition_band,
+    Subscale = subscale,
+    `Mean score` = round(mean_score, 1),
+    n
+  ) |>
+  kable(align = "llrr")
+```
+:::
+
+::: {.callout-note collapse="true"}
+### RACGP care continuity and coordination item by number of long-term conditions: sample sizes
+```{r}
+#| label: tbl-rate7-q3-by-conditions
+#| tbl-cap: "Q3 RACGP care continuity and coordination items by number of long-term conditions: underlying means and sample sizes"
+
+q3_summary |>
+  arrange(item, condition_band) |>
+  transmute(
+    `Number of conditions` = condition_band,
+    Item = item,
+    `Mean rating` = number(mean_rating, accuracy = 0.1),
+    n
+  ) |>
+  kable(align = "llrr")
+```
+:::
+
+::: {.callout-note collapse="true"}
+### P3CEQ PC and CC subscale scores by language: sample sizes
+```{r}
+#| label: tbl-p3ceq-subscales-by-language
+#| tbl-cap: "P3CEQ PC and CC subscale scores by language spoken at home, respondents with 1+ long-term conditions: underlying means and sample sizes"
+
+language_summary |>
+  arrange(subscale, language_group) |>
+  transmute(
+    `Language spoken at home` = language_group,
+    Subscale = subscale,
+    `Mean score` = round(mean_score, 1),
+    n
+  ) |>
+  kable(align = "llrr")
+```
+:::
 
 ## References {-}
 
