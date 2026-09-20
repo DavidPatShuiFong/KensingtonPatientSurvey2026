@@ -1176,12 +1176,12 @@ ggplot(language_summary, aes(language_group, mean_score)) +
 ### Predictors of P3CEQ scores: language, gender, age and number of chronic conditions
 
 Multiple linear regression estimates the association of language spoken at home (Q25), gender
-(Q22), age band (Q26) and number of long-term conditions (Q9, entered as a linear term) with the
-P3CEQ total score and PC/CC subscales. The sample is restricted to respondents who recorded
-at least one long-term condition in Q9, and who answered Q25, Q22 and Q26 — a "Don't wish to say"
-age response (Q26 = 5) is treated as not having answered an age. Each outcome's model
-uses every respondent in that sample with a non-missing score for it, so the
-total, PC and CC models can have slightly different sample sizes.
+(Q22), age band (Q26) and number of long-term conditions (Q9, entered as a linear term, capped at
+5+ to match `condition_band` above) with the P3CEQ total score and PC/CC subscales. The sample is
+restricted to respondents who recorded at least one long-term condition in Q9, and who answered
+Q25, Q22 and Q26 — a "Don't wish to say" age response (Q26 = 5) is treated as not having answered
+an age. Each outcome's model uses every respondent in that sample with a non-missing score for it,
+so the total, PC and CC models can have slightly different sample sizes.
 
 ```{r}
 #| label: p3ceq-regression
@@ -1204,10 +1204,17 @@ demo_covariates <- survey |>
   filter(!is.na(gender), !is.na(age_band))
 
 # q25_language and q9_conditions defined earlier above; both are already restricted to respondents
-# who answered Q25 / Q9 respectively.
+# who answered Q25 / Q9 respectively. n_conditions is capped at 5 here (matching condition_band's
+# "5+" top band above) rather than left as the raw count, so the linear term isn't dominated by a
+# handful of respondents reporting many more conditions than everyone else.
 reg_data <- p3ceq |>
   select(KEY, total, pc_subscale, cc_subscale) |>
-  inner_join(q9_conditions |> filter(n_conditions >= 1) |> select(KEY, n_conditions), by = "KEY") |>
+  inner_join(
+    q9_conditions |> filter(n_conditions >= 1) |>
+      mutate(n_conditions = pmin(n_conditions, 5)) |>
+      select(KEY, n_conditions),
+    by = "KEY"
+  ) |>
   inner_join(q25_language |> select(KEY, language_group), by = "KEY") |>
   inner_join(demo_covariates, by = "KEY")
 
@@ -1232,7 +1239,7 @@ reg_term_labels <- c(
   "genderMale"          = "Male",
   "age_band45–64"  = "45–64",
   "age_band65+"         = "65+",
-  "n_conditions"        = "Number of conditions (Q9, per condition)"
+  "n_conditions"        = "Number of conditions (Q9, per condition, capped at 5+)"
 )
 
 reg_coefs <- map_dfr(names(reg_models), function(nm) {
@@ -1259,7 +1266,7 @@ reg_coefs |>
   facet_wrap(~outcome, scales = "free_x") +
   labs(x = "Estimated change in score vs reference (95% CI)", y = NULL,
        title = "Predictors of P3CEQ scores",
-       subtitle = "Reference categories: English only, Female, Under 45; number of conditions is a linear term (per additional condition)") +
+       subtitle = "Reference categories: English only, Female, Under 45; number of conditions is a linear term (per additional condition, capped at 5+)") +
   theme(strip.text = element_text(face = "bold", colour = ink_primary, hjust = 0))
 ```
 
@@ -1352,10 +1359,7 @@ respondents are split into the four age × sex strata that `q26` (45–64 / 65+)
 (male/female) support, and each stratum's estimate is reweighted to the OECD standard population's
 age (collapsed to Kensington's two age bands: 53% 45–64, 47% 65+) and sex (55% female, 45% male)
 shares, assumed independent of one another since the OECD report publishes only these two marginal
-distributions, not their cross-tabulation. This direct stratum-reweighting is the saturated
-(fully-interacted) special case of Groenewegen et al.'s re-centred-regression standardisation
-method [-@groenewegen2024] — appropriate here since Kensington is a single site with no
-practice/country clustering to model.
+distributions, not their cross-tabulation.
 
 ## Appendices {#sec-appendices}
 
