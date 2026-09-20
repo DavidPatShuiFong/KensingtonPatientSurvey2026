@@ -985,7 +985,7 @@ experience](#clinic-specific-experience), "N/A" and "Don't know" responses are e
 #| label: rate7-q3-by-conditions
 #| fig-cap: "Q3 clinic-specific coordination items by number of long-term conditions (Q9)"
 #| fig-width: 8
-#| fig-height: 4.5
+#| fig-height: 5
 
 q3_vars <- c("q3a", "q3b", "q3c", "q3d")
 
@@ -1012,10 +1012,13 @@ q3_summary <- q3_by_conditions |>
 ggplot(q3_summary, aes(condition_band, mean_rating, colour = item, group = item)) +
   geom_line(linewidth = 0.9) +
   geom_point(size = 2.5) +
-  scale_colour_manual(values = pal_cat[1:4]) +
+  scale_colour_manual(values = pal_cat[1:4], labels = \(x) str_wrap(x, 28)) +
   scale_y_continuous(limits = c(1, 5), breaks = 1:5) +
   labs(x = "Number of long-term conditions (Q9)", y = "Mean rating (1 = Poor, 5 = Excellent)",
-       title = "Clinic-specific coordination items (Q3) by number of long-term conditions")
+       title = "Clinic-specific coordination items (Q3) by number of long-term conditions") +
+  # four long labels don't fit on one legend row without running off the right edge of the
+  # figure (only 3 of the 4 series were visible) - force two rows so all four are shown
+  guides(colour = guide_legend(nrow = 2, byrow = TRUE))
 ```
 
 ```{r}
