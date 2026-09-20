@@ -1352,10 +1352,7 @@ respondents are split into the four age × sex strata that `q26` (45–64 / 65+)
 (male/female) support, and each stratum's estimate is reweighted to the OECD standard population's
 age (collapsed to Kensington's two age bands: 53% 45–64, 47% 65+) and sex (55% female, 45% male)
 shares, assumed independent of one another since the OECD report publishes only these two marginal
-distributions, not their cross-tabulation. This direct stratum-reweighting is the saturated
-(fully-interacted) special case of Groenewegen et al.'s re-centred-regression standardisation
-method [-@groenewegen2024] — appropriate here since Kensington is a single site with no
-practice/country clustering to model.
+distributions, not their cross-tabulation.
 
 ## Appendices {#sec-appendices}
 
