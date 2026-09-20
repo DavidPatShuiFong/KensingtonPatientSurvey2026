@@ -157,8 +157,9 @@ strip_html <- function(x) x |> str_remove_all("<[^>]+>") |> str_squish()
 ## About this report
 
 This report summarises responses to the 2026 cohealth Kensington GP clinic patient feedback
-survey. The survey combines clinic-specific items about reception, privacy and
-care coordination and demographic questions from "Standards for general practices (5th edition), Patient feedback guide" [@racgppatientfeedbackguide]
+survey. The survey combines clinic-specific items about reception, privacy,
+continuity of care (with a focus on care coordination) and demographic questions
+from "Standards for general practices (5th edition), Patient feedback guide" [@racgppatientfeedbackguide]
 and the validated **P3CEQ** (Person Centred Coordinated Care Experiences Questionnaire) [@p3c_p3c-eq].
 
 Full item wording and response options are
@@ -570,10 +571,12 @@ p3ceq |>
        subtitle = "*Q4 is reverse-scored: a high score means information rarely had to be repeated")
 ```
 
-## Clinic-specific experience
+## RACGP administrative staff, privacy and continuity of care
 
-Questions 1–3 ask about reception staff, privacy, and how well your clinician coordinated with
-other health professionals, each rated on a 5-point Poor–Excellent scale (with "N/A" and "Don't
+Questions 1–3 are selected questions from the [@racgppatientfeedbackguide]. The questions chosen
+focused on the communication and interpersonal skills of administrative staff,
+privacy and confidentiality and continuity of care, with a focus on care coordination.
+Each question is rated on a 5-point Poor–Excellent scale (with "N/A" and "Don't
 know" excluded from the summaries below).
 
 ```{r}
@@ -900,7 +903,9 @@ ggplot(conditions_paris_compare, aes(pct, label, fill = series)) +
   guides(fill = guide_legend(reverse = TRUE))
 ```
 
-### P3CEQ subscales by number of conditions
+### Care coordination by number of conditions
+
+#### P3CEQ subscales
 
 The chart below is restricted to respondents who answered Q9 (so "0" is a real answer of no
 long-term conditions, not a skipped question), with no age restriction — unlike the 45+ comparisons
@@ -1142,9 +1147,9 @@ other_langs |>
 The chart below is restricted to respondents who answered Q25 and who recorded at least one
 long-term condition in Q9 (per `q9_conditions` above, so a Q9 skip is excluded rather than counted
 as zero conditions), with no age restriction. Respondents are grouped into three categories based
-on the individual Q25 language options (not the "Other" free-text): "English only" (selected
-English, `q25_1`, and no other language), "Another language (no English)" (selected at least one
-other language and not English), and "English and another language" (selected both).
+on the individual Q25 language options: "English only" (selected English, `q25_1`, and no other language),
+"Another language (no English)" (selected at least one other language and not English),
+and "English and another language" (selected both).
 
 ```{r}
 #| label: p3ceq-subscales-by-language
