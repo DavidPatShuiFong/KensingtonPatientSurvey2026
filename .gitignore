@@ -19,3 +19,11 @@ KensingtonPatientSurvey2026.tex
 # never commit (see CLAUDE.md for what these are and how the report uses them)
 Patient feedback questionnaire *.csv
 P3C-PEQ with scoring.pdf
+
+# Scanned paper surveys (real patient responses) and the data-entry log describing
+# their transcription into SurveyCTO - local only, never commit
+/Surveys/
+paper_survey_entry_log.md
+
+# Playwright MCP tool scratch output (page snapshots/screenshots), not project content
+/.playwright-mcp/

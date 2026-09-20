@@ -416,7 +416,7 @@ ggplot(cc_compare, aes(pct, fct_rev(band), fill = series)) +
 
 ### Confidence to self-manage and person-centred care vs PaRIS10 Dashboard 2024
 
-The OECD's PaRIS10 Dashboard [OECD, -@oecd-paris] benchmarks two further P3CEQ-derived
+The OECD's PaRIS10 Dashboard [@oecd-paris] benchmarks two further P3CEQ-derived
 measures for primary care users aged 45+ living with one or more chronic conditions:
 **confidence to self-manage** (a single item — "how confident are you that you can manage your
 own health and well-being?" — positive if confident/very confident) and **person-centred care**
@@ -424,7 +424,7 @@ own health and well-being?" — positive if confident/very confident) and **pers
 
 The Australia and OECD PaRIS figures below are age-sex standardised to the OECD PaRIS standard
 population [@oecd-paris; @groenewegen2024]; Kensington's figures are standardised to the same
-reference population to keep the comparison fair (see [Notes](#sec-standardisation) for how).
+reference population (see [Notes](#sec-standardisation)).
 
 ```{r}
 #| label: paris10-dashboard-compare
@@ -900,6 +900,139 @@ ggplot(conditions_paris_compare, aes(pct, label, fill = series)) +
   guides(fill = guide_legend(reverse = TRUE))
 ```
 
+### P3CEQ subscales by number of conditions
+
+The chart below is restricted to respondents who answered Q9 (so "0" is a real answer of no
+long-term conditions, not a skipped question), with no age restriction — unlike the 45+ comparisons
+against PaRIS benchmarks earlier, every respondent who answered Q9 is included regardless of age. It
+compares the P3CEQ person-centred (PC, out of 24) and care coordination (CC, out of 15) subscale
+scores against the number of long-term conditions reported.
+
+```{r}
+#| label: p3ceq-subscales-by-conditions
+#| fig-cap: "P3CEQ PC and CC subscale scores by number of long-term conditions (Q9)"
+#| fig-width: 8
+#| fig-height: 4.5
+
+# The exploded q9_* indicator columns are 0 (not NA) even when Q9 was skipped entirely - SurveyCTO
+# fills them in regardless - so "answered" has to be read off the raw q9 column (a space-separated
+# list of selected codes, empty string when skipped) rather than off the indicator columns. A
+# respondent who answered and selected only "never been told by a doctor..." (q9_13) is a real
+# answer of zero conditions; one who left q9 blank is not and must be excluded, not counted as zero.
+q9_conditions <- survey |>
+  mutate(
+    KEY,
+    answered_q9 = !is.na(q9) & q9 != "",
+    n_conditions = rowSums(across(matches("^q9_(1|2|3|4|5|6|7|8|9|10|11|12)$")), na.rm = TRUE),
+    condition_band = factor(pmin(n_conditions, 5), levels = 0:5,
+                             labels = c("0", "1", "2", "3", "4", "5+")),
+    .keep = "none"
+  ) |>
+  filter(answered_q9)
+
+subscale_labels <- c(
+  pc_subscale = "Person-centred (PC, out of 24)",
+  cc_subscale = "Care coordination (CC, out of 15)"
+)
+
+# PC and CC are on different maximum scores (24 vs 15), so they're faceted with independent y-axes
+# rather than drawn as two lines on one shared axis.
+subscale_by_conditions <- p3ceq |>
+  select(KEY, pc_subscale, cc_subscale) |>
+  inner_join(q9_conditions, by = "KEY") |>
+  pivot_longer(c(pc_subscale, cc_subscale), names_to = "subscale", values_to = "score") |>
+  filter(!is.na(score)) |>
+  mutate(subscale = factor(subscale_labels[subscale], levels = subscale_labels))
+
+subscale_summary <- subscale_by_conditions |>
+  group_by(condition_band, subscale) |>
+  summarise(mean_score = mean(score), n = n(), .groups = "drop")
+
+ggplot(subscale_summary, aes(condition_band, mean_score, group = subscale)) +
+  geom_line(linewidth = 0.9, colour = pal_blue) +
+  geom_point(size = 2.5, colour = pal_blue) +
+  facet_wrap(~subscale, scales = "free_y") +
+  labs(x = "Number of long-term conditions (Q9)", y = "Mean subscale score",
+       title = "P3CEQ subscale scores by number of long-term conditions") +
+  theme(strip.text = element_text(face = "bold", colour = ink_primary, hjust = 0))
+```
+
+```{r}
+#| label: tbl-p3ceq-subscales-by-conditions
+#| tbl-cap: "P3CEQ PC and CC subscale scores by number of long-term conditions: underlying means and sample sizes"
+
+subscale_summary |>
+  arrange(subscale, condition_band) |>
+  transmute(
+    `Number of conditions` = condition_band,
+    Subscale = subscale,
+    `Mean score` = round(mean_score, 1),
+    n
+  ) |>
+  kable(align = "llrr")
+```
+
+### Clinic-specific experience by number of conditions
+
+The same Q9-answered group is compared against the four clinic-specific coordination items from
+Q3 (reception/privacy items Q1–Q2 are excluded here since they aren't about care coordination):
+"knew your medical history", "the clinician was aware of advice you had received from other health
+professionals", "coordinated different healthcare professionals" and "gave the right amount of
+information to other healthcare professionals". As in [Clinic-specific
+experience](#clinic-specific-experience), "N/A" and "Don't know" responses are excluded.
+
+```{r}
+#| label: rate7-q3-by-conditions
+#| fig-cap: "Q3 clinic-specific coordination items by number of long-term conditions (Q9)"
+#| fig-width: 8
+#| fig-height: 4.5
+
+q3_vars <- c("q3a", "q3b", "q3c", "q3d")
+
+q3_item_labels <- c(
+  q3a = "Knew your medical history",
+  q3b = "Aware of advice from other health professionals",
+  q3c = "Coordinated different healthcare professionals",
+  q3d = "Gave the right amount of information to other professionals"
+)
+
+q3_by_conditions <- survey |>
+  select(KEY, all_of(q3_vars)) |>
+  inner_join(q9_conditions, by = "KEY") |>
+  mutate(across(all_of(q3_vars), ~ if_else(.x %in% 1:5, .x, NA_real_))) # drop N/A (6) / Don't know (7)
+
+q3_summary <- q3_by_conditions |>
+  select(condition_band, all_of(q3_vars)) |>
+  pivot_longer(-condition_band, names_to = "item", values_to = "rating") |>
+  filter(!is.na(rating)) |>
+  group_by(condition_band, item) |>
+  summarise(mean_rating = mean(rating), n = n(), .groups = "drop") |>
+  mutate(item = factor(q3_item_labels[item], levels = q3_item_labels))
+
+ggplot(q3_summary, aes(condition_band, mean_rating, colour = item, group = item)) +
+  geom_line(linewidth = 0.9) +
+  geom_point(size = 2.5) +
+  scale_colour_manual(values = pal_cat[1:4]) +
+  scale_y_continuous(limits = c(1, 5), breaks = 1:5) +
+  labs(x = "Number of long-term conditions (Q9)", y = "Mean rating (1 = Poor, 5 = Excellent)",
+       title = "Clinic-specific coordination items (Q3) by number of long-term conditions")
+```
+
+```{r}
+#| label: tbl-rate7-q3-by-conditions
+#| tbl-cap: "Q3 clinic-specific coordination items by number of long-term conditions: underlying means and sample sizes"
+
+q3_summary |>
+  arrange(item, condition_band) |>
+  transmute(
+    `Number of conditions` = condition_band,
+    Item = item,
+    `Mean rating` = number(mean_rating, accuracy = 0.1),
+    n
+  ) |>
+  kable(align = "llrr")
+```
+
 ## Respondent profile
 
 ```{r}
@@ -999,6 +1132,82 @@ other_langs |>
   labs(x = "Respondents", y = NULL, title = "Q25 \"Other\": languages named in free text",
        subtitle = paste0(sum(other_langs$n), " free-text responses, out of ",
                           languages$n[languages$label == "Other"], " respondents who selected \"Other\""))
+```
+
+### P3CEQ subscales by language spoken at home
+
+The chart below is restricted to respondents who answered Q25 and who recorded at least one
+long-term condition in Q9 (per `q9_conditions` above, so a Q9 skip is excluded rather than counted
+as zero conditions), with no age restriction. Respondents are grouped into three categories based
+on the individual Q25 language options (not the "Other" free-text): "English only" (selected
+English, `q25_1`, and no other language), "Another language (no English)" (selected at least one
+other language and not English), and "English and another language" (selected both).
+
+```{r}
+#| label: p3ceq-subscales-by-language
+#| fig-cap: "P3CEQ PC and CC subscale scores by language spoken at home (Q25), respondents with 1+ long-term conditions (Q9)"
+#| fig-width: 8
+#| fig-height: 4.5
+
+language_group_levels <- c("English only", "Another language (no English)", "English and another language")
+
+# The exploded q25_* indicator columns are 0 (not NA) even when Q25 was skipped entirely -
+# SurveyCTO fills them in regardless - so "answered" has to be read off the raw q25 column (NA when
+# skipped) rather than off the indicator columns. Once answered_q25 is TRUE, q25_1 is a real 0/1.
+q25_language <- survey |>
+  mutate(
+    KEY,
+    answered_q25 = !is.na(q25) & q25 != "",
+    has_english  = q25_1 == 1,
+    has_other    = rowSums(across(matches("^q25_[2-8]$")), na.rm = TRUE) > 0,
+    language_group = factor(case_when(
+      has_english & !has_other ~ "English only",
+      !has_english & has_other ~ "Another language (no English)",
+      has_english & has_other  ~ "English and another language"
+    ), levels = language_group_levels),
+    .keep = "none"
+  ) |>
+  filter(answered_q25)
+
+# subscale_labels and q9_conditions defined earlier in "P3CEQ subscales by number of conditions"
+# above; q9_conditions is already restricted to respondents who answered Q9.
+subscale_by_language <- p3ceq |>
+  select(KEY, pc_subscale, cc_subscale) |>
+  inner_join(q25_language, by = "KEY") |>
+  inner_join(q9_conditions |> select(KEY, n_conditions), by = "KEY") |>
+  filter(n_conditions >= 1) |>
+  pivot_longer(c(pc_subscale, cc_subscale), names_to = "subscale", values_to = "score") |>
+  filter(!is.na(score)) |>
+  mutate(subscale = factor(subscale_labels[subscale], levels = subscale_labels))
+
+language_summary <- subscale_by_language |>
+  group_by(language_group, subscale) |>
+  summarise(mean_score = mean(score), n = n(), .groups = "drop")
+
+ggplot(language_summary, aes(language_group, mean_score)) +
+  geom_col(fill = pal_blue, width = 0.6) +
+  geom_text(aes(label = number(mean_score, accuracy = 0.1)), vjust = -0.5, size = 3.3, colour = ink_secondary) +
+  facet_wrap(~subscale, scales = "free_y") +
+  scale_x_discrete(labels = \(x) str_wrap(x, 12)) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.15))) +
+  labs(x = NULL, y = "Mean subscale score",
+       title = "P3CEQ subscale scores by language spoken at home") +
+  theme(strip.text = element_text(face = "bold", colour = ink_primary, hjust = 0))
+```
+
+```{r}
+#| label: tbl-p3ceq-subscales-by-language
+#| tbl-cap: "P3CEQ PC and CC subscale scores by language spoken at home, respondents with 1+ long-term conditions: underlying means and sample sizes"
+
+language_summary |>
+  arrange(subscale, language_group) |>
+  transmute(
+    `Language spoken at home` = language_group,
+    Subscale = subscale,
+    `Mean score` = round(mean_score, 1),
+    n
+  ) |>
+  kable(align = "llrr")
 ```
 
 ## What patients said {#sec-comment_racgp_q}
