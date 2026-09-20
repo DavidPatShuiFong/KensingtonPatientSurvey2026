@@ -157,8 +157,9 @@ strip_html <- function(x) x |> str_remove_all("<[^>]+>") |> str_squish()
 ## About this report
 
 This report summarises responses to the 2026 cohealth Kensington GP clinic patient feedback
-survey. The survey combines clinic-specific items about reception, privacy and
-care coordination and demographic questions from "Standards for general practices (5th edition), Patient feedback guide" [@racgppatientfeedbackguide]
+survey. The survey combines clinic-specific items about reception, privacy,
+continuity of care (with a focus on care coordination) and demographic questions
+from "Standards for general practices (5th edition), Patient feedback guide" [@racgppatientfeedbackguide]
 and the validated **P3CEQ** (Person Centred Coordinated Care Experiences Questionnaire) [@p3c_p3c-eq].
 
 Full item wording and response options are
@@ -570,10 +571,12 @@ p3ceq |>
        subtitle = "*Q4 is reverse-scored: a high score means information rarely had to be repeated")
 ```
 
-## Clinic-specific experience
+## RACGP administrative staff, privacy and continuity of care
 
-Questions 1–3 ask about reception staff, privacy, and how well your clinician coordinated with
-other health professionals, each rated on a 5-point Poor–Excellent scale (with "N/A" and "Don't
+Questions 1–3 are selected questions from the [@racgppatientfeedbackguide]. The questions chosen
+focused on the communication and interpersonal skills of administrative staff,
+privacy and confidentiality and continuity of care, with a focus on care coordination.
+Each question is rated on a 5-point Poor–Excellent scale (with "N/A" and "Don't
 know" excluded from the summaries below).
 
 ```{r}
@@ -900,7 +903,9 @@ ggplot(conditions_paris_compare, aes(pct, label, fill = series)) +
   guides(fill = guide_legend(reverse = TRUE))
 ```
 
-### P3CEQ subscales by number of conditions
+### Care coordination by number of conditions
+
+#### P3CEQ subscales
 
 The chart below is restricted to respondents who answered Q9 (so "0" is a real answer of no
 long-term conditions, not a skipped question), with no age restriction — unlike the 45+ comparisons
@@ -957,25 +962,10 @@ ggplot(subscale_summary, aes(condition_band, mean_score, group = subscale)) +
   theme(strip.text = element_text(face = "bold", colour = ink_primary, hjust = 0))
 ```
 
-```{r}
-#| label: tbl-p3ceq-subscales-by-conditions
-#| tbl-cap: "P3CEQ PC and CC subscale scores by number of long-term conditions: underlying means and sample sizes"
+#### RACGP care continuity and coordination questions
 
-subscale_summary |>
-  arrange(subscale, condition_band) |>
-  transmute(
-    `Number of conditions` = condition_band,
-    Subscale = subscale,
-    `Mean score` = round(mean_score, 1),
-    n
-  ) |>
-  kable(align = "llrr")
-```
-
-### Clinic-specific experience by number of conditions
-
-The same Q9-answered group is compared against the four clinic-specific coordination items from
-Q3 (reception/privacy items Q1–Q2 are excluded here since they aren't about care coordination):
+The same Q9-answered group is compared against the four care continuity and coordination items
+from the [RACGP patient feedback guide, -@racgppatientfeedbackguide]:
 "knew your medical history", "the clinician was aware of advice you had received from other health
 professionals", "coordinated different healthcare professionals" and "gave the right amount of
 information to other healthcare professionals". As in [Clinic-specific
@@ -1019,21 +1009,6 @@ ggplot(q3_summary, aes(condition_band, mean_rating, colour = item, group = item)
   # four long labels don't fit on one legend row without running off the right edge of the
   # figure (only 3 of the 4 series were visible) - force two rows so all four are shown
   guides(colour = guide_legend(nrow = 2, byrow = TRUE))
-```
-
-```{r}
-#| label: tbl-rate7-q3-by-conditions
-#| tbl-cap: "Q3 clinic-specific coordination items by number of long-term conditions: underlying means and sample sizes"
-
-q3_summary |>
-  arrange(item, condition_band) |>
-  transmute(
-    `Number of conditions` = condition_band,
-    Item = item,
-    `Mean rating` = number(mean_rating, accuracy = 0.1),
-    n
-  ) |>
-  kable(align = "llrr")
 ```
 
 ## Respondent profile
@@ -1142,9 +1117,9 @@ other_langs |>
 The chart below is restricted to respondents who answered Q25 and who recorded at least one
 long-term condition in Q9 (per `q9_conditions` above, so a Q9 skip is excluded rather than counted
 as zero conditions), with no age restriction. Respondents are grouped into three categories based
-on the individual Q25 language options (not the "Other" free-text): "English only" (selected
-English, `q25_1`, and no other language), "Another language (no English)" (selected at least one
-other language and not English), and "English and another language" (selected both).
+on the individual Q25 language options: "English only" (selected English, `q25_1`, and no other language),
+"Another language (no English)" (selected at least one other language and not English),
+and "English and another language" (selected both).
 
 ```{r}
 #| label: p3ceq-subscales-by-language
@@ -1198,19 +1173,94 @@ ggplot(language_summary, aes(language_group, mean_score)) +
   theme(strip.text = element_text(face = "bold", colour = ink_primary, hjust = 0))
 ```
 
-```{r}
-#| label: tbl-p3ceq-subscales-by-language
-#| tbl-cap: "P3CEQ PC and CC subscale scores by language spoken at home, respondents with 1+ long-term conditions: underlying means and sample sizes"
+### Predictors of P3CEQ scores: language, gender, age and number of chronic conditions
 
-language_summary |>
-  arrange(subscale, language_group) |>
-  transmute(
-    `Language spoken at home` = language_group,
-    Subscale = subscale,
-    `Mean score` = round(mean_score, 1),
-    n
+Multiple linear regression estimates the association of language spoken at home (Q25), gender
+(Q22), age band (Q26) and number of long-term conditions (Q9, entered as a linear term) with the
+P3CEQ total score and PC/CC subscales. The sample is restricted to respondents who recorded
+at least one long-term condition in Q9, and who answered Q25, Q22 and Q26 — a "Don't wish to say"
+age response (Q26 = 5) is treated as not having answered an age. Each outcome's model
+uses every respondent in that sample with a non-missing score for it, so the
+total, PC and CC models can have slightly different sample sizes.
+
+```{r}
+#| label: p3ceq-regression
+
+# Age band collapses Q26's five options into three: "Don't wish to say" (5) and a blank answer are
+# excluded (not an age), and the sparse 15-24 and 25-44 bands (2 and 11 respondents respectively,
+# among those with 1+ condition) are combined into "Under 45" so the model isn't fit on near-empty
+# cells.
+demo_covariates <- survey |>
+  mutate(
+    KEY,
+    gender = factor(case_when(q22 == 1 ~ "Male", q22 == 2 ~ "Female"), levels = c("Female", "Male")),
+    age_band = factor(case_when(
+      q26 %in% c(1, 2) ~ "Under 45",
+      q26 == 3          ~ "45–64",
+      q26 == 4          ~ "65+"
+    ), levels = c("Under 45", "45–64", "65+")),
+    .keep = "none"
   ) |>
-  kable(align = "llrr")
+  filter(!is.na(gender), !is.na(age_band))
+
+# q25_language and q9_conditions defined earlier above; both are already restricted to respondents
+# who answered Q25 / Q9 respectively.
+reg_data <- p3ceq |>
+  select(KEY, total, pc_subscale, cc_subscale) |>
+  inner_join(q9_conditions |> filter(n_conditions >= 1) |> select(KEY, n_conditions), by = "KEY") |>
+  inner_join(q25_language |> select(KEY, language_group), by = "KEY") |>
+  inner_join(demo_covariates, by = "KEY")
+
+reg_outcome_labels <- c(
+  total       = "P3CEQ total (0–30)",
+  pc_subscale = "PC subscale (0–24)",
+  cc_subscale = "CC subscale (0–15)"
+)
+
+# lm()'s default na.action (na.omit) drops rows missing that particular outcome, so each model
+# fits on all of reg_data with a non-missing score for it - no separate per-outcome filter needed.
+reg_predictors <- c("language_group", "gender", "age_band", "n_conditions")
+reg_models <- map(names(reg_outcome_labels), function(outcome) {
+  lm(reformulate(reg_predictors, response = outcome), data = reg_data)
+}) |>
+  set_names(names(reg_outcome_labels))
+
+reg_term_labels <- c(
+  "(Intercept)" = "Intercept (English only, Female, Under 45, 0 conditions)",
+  "language_groupAnother language (no English)" = "Another language (no English)",
+  "language_groupEnglish and another language"   = "English and another language",
+  "genderMale"          = "Male",
+  "age_band45–64"  = "45–64",
+  "age_band65+"         = "65+",
+  "n_conditions"        = "Number of conditions (Q9, per condition)"
+)
+
+reg_coefs <- map_dfr(names(reg_models), function(nm) {
+  broom::tidy(reg_models[[nm]], conf.int = TRUE) |>
+    mutate(outcome = reg_outcome_labels[[nm]], n = nobs(reg_models[[nm]]))
+}) |>
+  mutate(
+    outcome = factor(outcome, levels = reg_outcome_labels),
+    term = factor(reg_term_labels[term], levels = rev(reg_term_labels))
+  )
+```
+
+```{r}
+#| label: fig-p3ceq-regression
+#| fig-cap: "Predictors of P3CEQ scores: language, gender, age and number of conditions (95% CI), among respondents with 1+ long-term conditions (Q9)"
+#| fig-width: 9
+#| fig-height: 5.5
+
+reg_coefs |>
+  filter(term != "Intercept (English only, Female, Under 45, 0 conditions)") |>
+  ggplot(aes(estimate, term)) +
+  geom_vline(xintercept = 0, colour = baseline_col, linewidth = 0.4) +
+  geom_pointrange(aes(xmin = conf.low, xmax = conf.high), colour = pal_blue, linewidth = 0.7, size = 0.5) +
+  facet_wrap(~outcome, scales = "free_x") +
+  labs(x = "Estimated change in score vs reference (95% CI)", y = NULL,
+       title = "Predictors of P3CEQ scores",
+       subtitle = "Reference categories: English only, Female, Under 45; number of conditions is a linear term (per additional condition)") +
+  theme(strip.text = element_text(face = "bold", colour = ink_primary, hjust = 0))
 ```
 
 ## What patients said {#sec-comment_racgp_q}
@@ -1306,6 +1356,101 @@ distributions, not their cross-tabulation. This direct stratum-reweighting is th
 (fully-interacted) special case of Groenewegen et al.'s re-centred-regression standardisation
 method [-@groenewegen2024] — appropriate here since Kensington is a single site with no
 practice/country clustering to model.
+
+## Appendices {#sec-appendices}
+
+::: {.callout-note collapse="true"}
+### P3CEQ PC and CC subscale scores by number of long-term conditions: sample sizes
+
+```{r}
+#| label: tbl-p3ceq-subscales-by-conditions
+#| tbl-cap: "P3CEQ PC and CC subscale scores by number of long-term conditions: underlying means and sample sizes"
+
+subscale_summary |>
+  arrange(subscale, condition_band) |>
+  transmute(
+    `Number of conditions` = condition_band,
+    Subscale = subscale,
+    `Mean score` = round(mean_score, 1),
+    n
+  ) |>
+  kable(align = "llrr")
+```
+:::
+
+::: {.callout-note collapse="true"}
+### RACGP care continuity and coordination item by number of long-term conditions: sample sizes
+```{r}
+#| label: tbl-rate7-q3-by-conditions
+#| tbl-cap: "Q3 RACGP care continuity and coordination items by number of long-term conditions: underlying means and sample sizes"
+
+q3_summary |>
+  arrange(item, condition_band) |>
+  transmute(
+    `Number of conditions` = condition_band,
+    Item = item,
+    `Mean rating` = number(mean_rating, accuracy = 0.1),
+    n
+  ) |>
+  kable(align = "llrr")
+```
+:::
+
+::: {.callout-note collapse="true"}
+### P3CEQ PC and CC subscale scores by language: sample sizes
+```{r}
+#| label: tbl-p3ceq-subscales-by-language
+#| tbl-cap: "P3CEQ PC and CC subscale scores by language spoken at home, respondents with 1+ long-term conditions: underlying means and sample sizes"
+
+language_summary |>
+  arrange(subscale, language_group) |>
+  transmute(
+    `Language spoken at home` = language_group,
+    Subscale = subscale,
+    `Mean score` = round(mean_score, 1),
+    n
+  ) |>
+  kable(align = "llrr")
+```
+:::
+
+::: {.callout-note collapse="true"}
+### Predictors of P3CEQ scores: full regression output
+
+```{r}
+#| label: tbl-p3ceq-regression
+#| tbl-cap: "Predictors of P3CEQ scores: full coefficient table (language, gender, age)"
+
+reg_coefs |>
+  arrange(outcome, term) |>
+  transmute(
+    Outcome = outcome,
+    Term = term,
+    n,
+    Estimate = number(estimate, accuracy = 0.01),
+    `95% CI` = paste0(number(conf.low, accuracy = 0.01), " to ", number(conf.high, accuracy = 0.01)),
+    `p` = number(p.value, accuracy = 0.001)
+  ) |>
+  kable(align = "llrrrr")
+```
+
+```{r}
+#| label: tbl-p3ceq-regression-fit
+#| tbl-cap: "Predictors of P3CEQ scores: model fit statistics"
+
+map_dfr(names(reg_models), function(nm) {
+  broom::glance(reg_models[[nm]]) |>
+    transmute(
+      Outcome = reg_outcome_labels[[nm]],
+      n = nobs(reg_models[[nm]]),
+      `R²` = number(r.squared, accuracy = 0.01),
+      `Adj. R²` = number(adj.r.squared, accuracy = 0.01),
+      `F p-value` = number(p.value, accuracy = 0.001)
+    )
+}) |>
+  kable(align = "lrrrr")
+```
+:::
 
 ## References {-}
 
