@@ -1221,7 +1221,7 @@ ggplot(q24_summary, aes(attended_other_gp, mean_score)) +
   theme(strip.text = element_text(face = "bold", colour = ink_primary, hjust = 0))
 ```
 
-### Predictors of P3CEQ scores: language, gender, age, number of chronic conditions and other GP attendance
+### Predictors of P3CEQ scores: language, gender, age and number of chronic conditions
 
 Estimates through a multiple linear regression the association of language spoken at home (Q25), gender
 (Q22), age band (Q26) and number of long-term conditions (Q9, entered as a linear term, capped at
