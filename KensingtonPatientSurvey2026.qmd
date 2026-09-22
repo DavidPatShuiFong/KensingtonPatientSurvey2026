@@ -1,6 +1,21 @@
 ---
 title: "cohealth Kensington GP Clinic — Patient Feedback Survey 2026"
 subtitle: "P3CEQ person-centred care results and patient experience summary"
+abstract: >-
+  This report summarises 161 patient responses (94 online, 67 paper) to the 2026 cohealth
+  Kensington GP clinic patient feedback survey, combining RACGP-recommended items on reception,
+  privacy and care coordination with the validated P3CEQ (Person-Centred Coordinated Care
+  Experience Questionnaire). The average P3CEQ total score was 21.8 out of 30 (person-centred
+  subscale 18.6/24; care coordination subscale 10.1/15). Among respondents aged 45 and over with a
+  long-term condition, age-sex standardised to the OECD PaRIS reference population, Kensington's
+  person-centred care result (18.8/24, 95% scoring positively) exceeded both the Australian PaRIS10
+  Dashboard 2024 average (93%) and the OECD average (87%), and its care coordination subscale
+  (10.4/15, "High") improved on Kensington's own 2023 PaRIS result (8.8) and the 2023 national
+  comparison group (9.8). Confidence to self-manage one's own health (58%) was comparable to the
+  Australian (61%) and OECD (59%) benchmarks. Overall, respondents reported a positive,
+  person-centred and well-coordinated care experience at Kensington relative to national and
+  international benchmarks, with no strong evidence that this varied systematically by the
+  demographic and clinical characteristics examined.
 number-sections: true
 date: today
 format:
@@ -98,6 +113,32 @@ references:
     issued:
       date-parts:
         - [2024]
+  - type: article-journal
+    id: lloyd2019
+    author:
+      - family: "Lloyd"
+        given: "H."
+      - family: "Fosh"
+        given: "B."
+      - family: "Whalley"
+        given: "B."
+      - family: "Byng"
+        given: "R."
+      - family: "Close"
+        given: "J."
+    title: "Validation of the person-centred coordinated care experience questionnaire (P3CEQ)"
+    container-title: "International Journal for Quality in Health Care"
+    volume: 31
+    issue: 7
+    page: "506-512"
+    url: "https://doi.org/10.1093/intqhc/mzy212"
+    DOI: "10.1093/intqhc/mzy212"
+    PMID: "30508089"
+    PMCID: "PMC6839368"
+    note: "PMID: 30508089; PMCID: PMC6839368"
+    issued:
+      date-parts:
+        - [2019, 8, 1]
 editor: source
 ---
 
@@ -157,14 +198,13 @@ strip_html <- function(x) x |> str_remove_all("<[^>]+>") |> str_squish()
 ## About this report
 
 This report summarises responses to the 2026 cohealth Kensington GP clinic patient feedback
-survey. The survey combines clinic-specific items about reception, privacy,
+survey. The survey combines RACGP recommended patient feedback items about reception, privacy,
 continuity of care (with a focus on care coordination) and demographic questions
 from "Standards for general practices (5th edition), Patient feedback guide" [@racgppatientfeedbackguide]
-and the validated **P3CEQ** (Person Centred Coordinated Care Experiences Questionnaire) [@p3c_p3c-eq].
+and the validated **P3CEQ** (Person Centred Coordinated Care Experiences Questionnaire) [@p3c_p3c-eq; @lloyd2019].
 
-Full item wording and response options are
-defined in `` `r form_path` ``; the P3CEQ instrument and its scoring rules are documented in
-`P3C-PEQ with scoring.pdf`.
+Full item wording and response options are defined in `` `r form_path` ``;
+the P3CEQ instrument and its scoring rules are documented in `P3C-PEQ with scoring.pdf`.
 
 ```{r}
 #| label: load-data
@@ -249,8 +289,8 @@ Paper versions of the survey were offered to patients in the waiting and consult
 
 RACGP active patients (three visits or more in the past two years with GP clinicians
 at the cohealth Kensington site) who also had seen a cohealth Kensington GP at least once in 2026 and aged 20 years or above
-were sent a SMS invitation to complete the survey online on 5th September 2026. 948 patients were invited to complete the survey
-through an SMS invitation.
+were sent a SMS invitation to complete the survey online on 5th September 2026. Patient selection was done using the [POLAR](https://www.outcomehealth.org.au/services/polar/) tool by Outcome Health. 
+948 patients were invited to complete the survey through an SMS invitation.
 
 The summaries below are based on those `r n_consented` responses. `r n_declined` people opened the survey online and
 declined.
@@ -261,8 +301,8 @@ Questions 4–20 of the survey reproduce the P3CEQ instrument, using wording as 
 the PaRIS international patient reported indicator survey [ACSQHC, -@paris]. Raw response codes are recoded onto the official P3CEQ 0–3 scale before
 scoring, following the mapping in `CLAUDE.md`. The total score sums the ten P3CEQ items
 (Q7 contributes the average of its four sub-items 7a–7d), giving a score out of 30 where higher
-means a more person-centred, coordinated care experience. Two optional subscales are also
-reported: **person-centred (PC)** and **care coordination (CC)**.
+means a more person-centred, coordinated care experience. Two subscales are also
+reported: **person-centred (PC)** and **care coordination (CC)** [@lloyd2019].
 
 ```{r}
 #| label: p3ceq-recode
@@ -670,7 +710,7 @@ conditions |>
        subtitle = paste0("Out of ", n_consented, " respondents; multiple selections allowed"))
 ```
 
-Q9 also lets respondents specify "Other long-term condition(s)" as free text. `q9_other` holds
+Q9 lets respondents specify "Other long-term condition(s)" as free text. `q9_other` holds
 what respondents typed in; below are those responses as given, one row per respondent.
 
 ```{r}
@@ -908,9 +948,9 @@ ggplot(conditions_paris_compare, aes(pct, label, fill = series)) +
 #### P3CEQ subscales
 
 The chart below is restricted to respondents who answered Q9 (so "0" is a real answer of no
-long-term conditions, not a skipped question), with no age restriction — unlike the 45+ comparisons
-against PaRIS benchmarks earlier, every respondent who answered Q9 is included regardless of age. It
-compares the P3CEQ person-centred (PC, out of 24) and care coordination (CC, out of 15) subscale
+long-term conditions, not a skipped question), with no age restriction. Unlike the 45+ comparisons
+against PaRIS benchmarks earlier, every respondent who answered Q9 is included regardless of age.
+The chart compares the P3CEQ person-centred (PC, out of 24) and care coordination (CC, out of 15) subscale
 scores against the number of long-term conditions reported.
 
 ```{r}
@@ -1086,7 +1126,7 @@ bind_rows(
         panel.spacing.x = unit(1.4, "lines"))
 ```
 
-A large share of the Q25 "Other" responses come from a wide mix of languages.
+Q25 "Other" responses come from a wide mix of languages.
 `q25_other` holds what respondents typed in; below are those free-text responses
 as given (grouped only where the text matches exactly), most-common first.
 
@@ -1395,15 +1435,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
 The Australia and OECD PaRIS figures in [Confidence to self-manage and person-centred care vs
 PaRIS10 Dashboard 2024](#confidence-to-self-manage-and-person-centred-care-vs-paris10-dashboard-2024)
-are age-sex standardised: each country's raw estimate is reweighted to the *PaRIS standard
+are age-sex standardised. Each country's raw estimate is reweighted to the *PaRIS standard
 population* — a reference age (four bands: 45–54, 55–64, 65–74, 75+) and sex (male/female)
 distribution for PaRIS-eligible patients aged 45+, built from the 17 participating OECD member
 countries' own standard populations [@oecd-paris, Table 7.5] — via a multilevel regression with
 re-centred age/sex predictors [@groenewegen2024], rather than each country's raw sample
 composition.
 
-To keep Kensington comparable, its figures in that section are age-sex standardised the same way:
-respondents are split into the four age × sex strata that `q26` (45–64 / 65+) and `q22`
+To keep Kensington comparable, its figures in that section are age-sex standardised the same way.
+Respondents are split into the four age × sex strata that `q26` (45–64 / 65+) and `q22`
 (male/female) support, and each stratum's estimate is reweighted to the OECD standard population's
 age (collapsed to Kensington's two age bands: 53% 45–64, 47% 65+) and sex (55% female, 45% male)
 shares, assumed independent of one another since the OECD report publishes only these two marginal
