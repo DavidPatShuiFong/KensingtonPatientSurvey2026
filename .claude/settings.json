@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(command -v *)",
+      "mcp__playwright__browser_snapshot",
+      "mcp__playwright__browser_find"
+    ]
+  }
+}
