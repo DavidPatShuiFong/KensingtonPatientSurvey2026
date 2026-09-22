@@ -1173,14 +1173,62 @@ ggplot(language_summary, aes(language_group, mean_score)) +
   theme(strip.text = element_text(face = "bold", colour = ink_primary, hjust = 0))
 ```
 
+### P3CEQ subscales by attendance at another general practice
+
+The chart below is restricted to respondents who answered Q24 ("Have you been to another general
+practice in the last year?") and who recorded at least one long-term condition in Q9 (per
+`q9_conditions` above, so a Q9 skip is excluded rather than counted as zero conditions), with no
+age restriction.
+
+```{r}
+#| label: p3ceq-subscales-by-other-gp
+#| fig-cap: "P3CEQ PC and CC subscale scores by attendance at another general practice in the last year (Q24), respondents with 1+ long-term conditions (Q9)"
+#| fig-width: 8
+#| fig-height: 4.5
+
+q24_levels <- c("No", "Yes")
+
+q24_attendance <- survey |>
+  mutate(
+    KEY,
+    attended_other_gp = factor(case_when(q24 == 1 ~ "Yes", q24 == 2 ~ "No"), levels = q24_levels),
+    .keep = "none"
+  ) |>
+  filter(!is.na(attended_other_gp))
+
+# subscale_labels and q9_conditions defined earlier in "Care coordination by number of conditions"
+# above; q9_conditions is already restricted to respondents who answered Q9.
+subscale_by_q24 <- p3ceq |>
+  select(KEY, pc_subscale, cc_subscale) |>
+  inner_join(q24_attendance, by = "KEY") |>
+  inner_join(q9_conditions |> select(KEY, n_conditions), by = "KEY") |>
+  filter(n_conditions >= 1) |>
+  pivot_longer(c(pc_subscale, cc_subscale), names_to = "subscale", values_to = "score") |>
+  filter(!is.na(score)) |>
+  mutate(subscale = factor(subscale_labels[subscale], levels = subscale_labels))
+
+q24_summary <- subscale_by_q24 |>
+  group_by(attended_other_gp, subscale) |>
+  summarise(mean_score = mean(score), n = n(), .groups = "drop")
+
+ggplot(q24_summary, aes(attended_other_gp, mean_score)) +
+  geom_col(fill = pal_blue, width = 0.5) +
+  geom_text(aes(label = number(mean_score, accuracy = 0.1)), vjust = -0.5, size = 3.3, colour = ink_secondary) +
+  facet_wrap(~subscale, scales = "free_y") +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.15))) +
+  labs(x = "Attended another general practice in the last year (Q24)", y = "Mean subscale score",
+       title = "P3CEQ subscale scores by attendance at another general practice") +
+  theme(strip.text = element_text(face = "bold", colour = ink_primary, hjust = 0))
+```
+
 ### Predictors of P3CEQ scores: language, gender, age and number of chronic conditions
 
-Multiple linear regression estimates the association of language spoken at home (Q25), gender
+Estimates through a multiple linear regression the association of language spoken at home (Q25), gender
 (Q22), age band (Q26) and number of long-term conditions (Q9, entered as a linear term, capped at
-5+ to match `condition_band` above) with the P3CEQ total score and PC/CC subscales. The sample is
-restricted to respondents who recorded at least one long-term condition in Q9, and who answered
-Q25, Q22 and Q26 — a "Don't wish to say" age response (Q26 = 5) is treated as not having answered
-an age. Each outcome's model uses every respondent in that sample with a non-missing score for it,
+5+) with the P3CEQ total score and PC/CC subscales. The sample is restricted to respondents
+who recorded at least one long-term condition in Q9, and who answered Q25, Q22 and Q26. 
+A "Don't wish to say" age response (Q26 = 5) is treated as not having answered an age.
+Each outcome's model uses every respondent in that sample with a non-missing score for it,
 so the total, PC and CC models can have slightly different sample sizes.
 
 ```{r}
@@ -1203,10 +1251,10 @@ demo_covariates <- survey |>
   ) |>
   filter(!is.na(gender), !is.na(age_band))
 
-# q25_language and q9_conditions defined earlier above; both are already restricted to respondents
-# who answered Q25 / Q9 respectively. n_conditions is capped at 5 here (matching condition_band's
-# "5+" top band above) rather than left as the raw count, so the linear term isn't dominated by a
-# handful of respondents reporting many more conditions than everyone else.
+# q25_language, q9_conditions defined earlier above; both are already
+# restricted to respondents who answered Q25 / Q9 respectively. n_conditions is capped at 5
+# here (matching condition_band's "5+" top band above) rather than left as the raw count, so the
+# linear term isn't dominated by a handful of respondents reporting many more conditions
 reg_data <- p3ceq |>
   select(KEY, total, pc_subscale, cc_subscale) |>
   inner_join(
@@ -1237,7 +1285,7 @@ reg_term_labels <- c(
   "language_groupAnother language (no English)" = "Another language (no English)",
   "language_groupEnglish and another language"   = "English and another language",
   "genderMale"          = "Male",
-  "age_band45–64"  = "45–64",
+  "age_band45–64"       = "45–64",
   "age_band65+"         = "65+",
   "n_conditions"        = "Number of conditions (Q9, per condition, capped at 5+)"
 )
@@ -1266,7 +1314,7 @@ reg_coefs |>
   facet_wrap(~outcome, scales = "free_x") +
   labs(x = "Estimated change in score vs reference (95% CI)", y = NULL,
        title = "Predictors of P3CEQ scores",
-       subtitle = "Reference categories: English only, Female, Under 45; number of conditions is a linear term (per additional condition, capped at 5+)") +
+       subtitle = "Reference categories: English only, Female, Under 45.\nNumber of conditions is a linear term (per additional condition, capped at 5+)") +
   theme(strip.text = element_text(face = "bold", colour = ink_primary, hjust = 0))
 ```
 
@@ -1419,11 +1467,29 @@ language_summary |>
 :::
 
 ::: {.callout-note collapse="true"}
+### P3CEQ PC and CC subscale scores by other GP attendance: sample sizes
+```{r}
+#| label: tbl-p3ceq-subscales-by-other-gp
+#| tbl-cap: "P3CEQ PC and CC subscale scores by attendance at another general practice, respondents with 1+ long-term conditions: underlying means and sample sizes"
+
+q24_summary |>
+  arrange(subscale, attended_other_gp) |>
+  transmute(
+    `Attended another GP practice (Q24)` = attended_other_gp,
+    Subscale = subscale,
+    `Mean score` = round(mean_score, 1),
+    n
+  ) |>
+  kable(align = "llrr")
+```
+:::
+
+::: {.callout-note collapse="true"}
 ### Predictors of P3CEQ scores: full regression output
 
 ```{r}
 #| label: tbl-p3ceq-regression
-#| tbl-cap: "Predictors of P3CEQ scores: full coefficient table (language, gender, age)"
+#| tbl-cap: "Predictors of P3CEQ scores: full coefficient table (language, gender, age, number of conditions)"
 
 reg_coefs |>
   arrange(outcome, term) |>
