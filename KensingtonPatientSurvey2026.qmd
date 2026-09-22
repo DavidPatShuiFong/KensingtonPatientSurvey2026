@@ -341,7 +341,7 @@ n_online <- n_consented - n_paper
 # patient actually filled it in (paper collection dates are given in the prose below instead).
 dates <- raw |>
   filter(!is_paper) |>
-  mutate(submit_dt = lubridate::mdy_hms(SubmissionDate)) |>
+  mutate(submit_dt = lubridate::dmy_hms(SubmissionDate)) |>
   summarise(first = min(submit_dt, na.rm = TRUE), last = max(submit_dt, na.rm = TRUE))
 
 med_duration <- median(survey$duration[!survey$is_paper], na.rm = TRUE) / 60
@@ -366,7 +366,7 @@ tibble(
 Both paper and online versions of the survey were made available. The paper and online versions of the survey were
 identical and available in English only.
 
-Paper versions of the survey were offered to patients in the waiting and consulting rooms (11th August to 11th September 2026).
+Paper versions of the survey were offered to patients in the waiting and consulting rooms (11th August to 17th September 2026).
 
 RACGP active patients (three visits or more in the past two years with GP clinicians
 at the cohealth Kensington site) who also had seen a cohealth Kensington GP at least once in 2026 and aged 20 years or above
