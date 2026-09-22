@@ -139,6 +139,87 @@ references:
     issued:
       date-parts:
         - [2019, 8, 1]
+  - type: article-journal
+    id: maeng2012
+    author:
+      - family: "Maeng"
+        given: "D. D."
+      - family: "Martsolf"
+        given: "G. R."
+      - family: "Scanlon"
+        given: "D. P."
+      - family: "Christianson"
+        given: "J. B."
+    title: "Care coordination for the chronically ill: understanding the patient's perspective"
+    container-title: "Health Services Research"
+    volume: 47
+    issue: 5
+    page: "1960-1979"
+    url: "https://doi.org/10.1111/j.1475-6773.2012.01405.x"
+    DOI: "10.1111/j.1475-6773.2012.01405.x"
+    PMID: "22985032"
+    PMCID: "PMC3513613"
+    note: "PMID: 22985032; PMCID: PMC3513613"
+    issued:
+      date-parts:
+        - [2012, 10]
+  - type: article-journal
+    id: burgers2010
+    author:
+      - family: "Burgers"
+        given: "J. S."
+      - family: "Voerman"
+        given: "G. E."
+      - family: "Grol"
+        given: "R."
+      - family: "Faber"
+        given: "M. J."
+      - family: "Schneider"
+        given: "E. C."
+    title: "Quality and coordination of care for patients with multiple conditions: results from an international survey of patient experience"
+    container-title: "Evaluation & the Health Professions"
+    volume: 33
+    issue: 3
+    page: "343-364"
+    url: "https://doi.org/10.1177/0163278710375695"
+    DOI: "10.1177/0163278710375695"
+    PMID: "20801976"
+    note: "PMID: 20801976"
+    issued:
+      date-parts:
+        - [2010, 9]
+  - type: article-journal
+    id: grembowski2014
+    author:
+      - family: "Grembowski"
+        given: "D."
+      - family: "Schaefer"
+        given: "J."
+      - family: "Johnson"
+        given: "K."
+      - family: "Fischer"
+        given: "H."
+      - family: "Moore"
+        given: "S."
+      - family: "Tai-Seale"
+        given: "M."
+      - family: "Ricciardi"
+        given: "R."
+      - family: "Fraser"
+        given: "J."
+      - family: "Miller"
+        given: "D."
+      - family: "LeRoy"
+        given: "L."
+    title: "A Conceptual Model of the Role of Complexity in the Care of Patients With Multiple Chronic Conditions"
+    container-title: "Medical Care"
+    volume: 52
+    page: "S7-S14"
+    url: "https://doi.org/10.1097/MLR.0000000000000045"
+    DOI: "10.1097/MLR.0000000000000045"
+    issued:
+      date-parts:
+        - [2014]
 editor: source
 ---
 
@@ -197,7 +278,7 @@ strip_html <- function(x) x |> str_remove_all("<[^>]+>") |> str_squish()
 
 ## About this report
 
-This report summarises responses to the 2026 cohealth Kensington GP clinic patient feedback
+This report summarises responses to and findings of the 2026 cohealth Kensington GP clinic patient feedback
 survey. The survey combines RACGP recommended patient feedback items about reception, privacy,
 continuity of care (with a focus on care coordination) and demographic questions
 from "Standards for general practices (5th edition), Patient feedback guide" [@racgppatientfeedbackguide]
@@ -295,6 +376,81 @@ were sent a SMS invitation to complete the survey online on 5th September 2026. 
 The summaries below are based on those `r n_consented` responses. `r n_declined` people opened the survey online and
 declined.
 
+## Background, findings and commentary
+
+cohealth Kensington general practice (primary care) clinic has a particular focus on working with a
+resource-poor and vulnerable population living with high levels of multi-morbidity.
+Patient surveys (PaRIS) and analysis of electronic medical records
+([cohealth Kensington complexity 2025](https://cohealthconnect.sharepoint.com/:b:/s/KensingtonMedicalTeam/IQCztuXG-yLQT76p7rChcdWFASixNAjYr6wifvTOuoQY7xY?e=WHo2Ou)) demonstrated the patient population has high levels of complexity: low incomes (60% of patients aged 45+ years reported
+household incomes below $50,000), a high burden of chronic disease (54% of patients
+aged 45+ years living with three or more disease, including a high proportion of 
+high- and low-frequency mental health conditions), a high proportion born overseas,
+a high proportion of consultations (22%) using professional interpreters and
+many who reported housing problems.
+
+Given the high proportion of cohealth Kensington patients living with multiple chronic
+conditions and complexity, the general practice should provide a well-coordinated system of care across multiple
+providers [@maeng2012]. Complexity can be understood as "the gap between an individual's
+needs and the capacity of the healthcare system to answer those needs" [@grembowski2014].
+Care coordination can be defined as "any co-operative activity that helps ensure the individual's
+needs and preferences for health services (and hence information sharing) across
+people, work-groups, organization and sites are met over time" [@lloyd2019]. 
+Coordinated care could be seen as an appropriate response to complexity and multi-morbidity.
+
+However, in [Kensington's PaRIS 2023 survey](https://cohealthconnect.sharepoint.com/:w:/s/PCMC-Team/IQAom5y1ekqqToxQve8DEg4DAeCyeIoNqZMgvc1BaKQ9t0A?e=k4106i)
+patients reported lower levels of care coordination (via the P3CEQ instrument) than the Australian general practice average.
+One possible explanation is that patients with multiple chronic conditions are more likely
+to report problems with care coordination [@maeng2012; @burgers2010], especially if patients
+have low levels of knowledge, skill and confidence to navigate the health care system.
+
+In 2026, patient-reported experience of care coordination at Kensington dramatically
+improved, exceeding both the 2023 Kensington reports and the PaRIS Australian
+general practice average (see [Care coordination subscale vs PaRIS 2023](#sec-carecoordinationsubscale)
+below). This is despite the Kensington general practice experiencing
+a period of service disruption during the previous eleven months, during which general
+practitioner (primary care physician) hours were reduced and clinic financial viability
+was uncertain. The same 2026 patient survey showed that the improvement in patient-reported
+experience of care coordination was achieved despite continuing high levels of patient
+chronic disease burden, financial disadvantage and non-English speaking background.
+
+Following cohealth Kensington's participation in the PaRIS survey in 2023, several changes
+were made that may have benefited care coordination.
+
+* Improved access to hospital medical records, including clinic notes, investigation results and
+future clinic appointment details. Access to medical records held by several nearby hospitals (Royal Melbourne Hospital,
+Royal Children's Hospital, Royal Women's Hospital and Peter MacCallum Cancer Centre), attended
+by many Kensington patients who live with chronic conditions, became available to clinicians
+working at the primary care clinic of cohealth Kensington through the 'Parkville Connect' system.
+Access to tertiary care information dramatically improved the ability of cohealth Kensington clinicians to review and follow up
+patient attendances at those hospitals. Clinicians were better equipped to let patients know
+that the clinician was familiar with the patient's care journey at the hospital.
+
+  - The nurses at cohealth Kensington were also able to access the 'Parkville Connect', providing
+  an additional clinical team member who could follow up a patient's progress at hospital. This was
+  particularly valuable given that cohealth Kensington general practitioner hours were reduced
+  throughout 2026. cohealth Kensington patients may have been more likely to access care at the clinic
+  through a nurse, rather than through a physician.
+  
+* Improved communication from cohealth Kensington's allied health care providers to
+cohealth Kensington primary care physicians. Allied health workers (social workers,
+physiotherapists, counsellors and others) working at cohealth do not use the same
+electronic medical record (EMR) system as the primary care clinicians. This results in
+a knowledge gap between the allied health workers and primary care clinicians, although
+many allied health workers and primary care clinicians will see the same patients in
+the same building. As of 2026, allied health care providers are increasingly copying
+their notes from their EMR into the primary care clinician EMR, allowing the primary
+care clinicians to be better informed of care provided to the patient at cohealth.
+
+  - In 2026, regular meetings between allied health staff and Kensington primary
+  care clinicians were reinstated to improve communication and information sharing
+  between clinical teams e.g. regarding referral procedures and service availability.
+
+* Changes in the way incoming correspondence is reviewed. In 2026, the operation of the
+primary care clinician EMR system was changed. Incoming correspondence that has been
+marked with a status other than 'No action' is now flagged for the clinician's attention
+during the consultation. This encourages the clinician to review the correspondence at
+the time of the consultation, potentially improving the care coordination experience for the patient.
+
 ## P3CEQ: person-centred coordinated care experience
 
 Questions 4–20 of the survey reproduce the P3CEQ instrument, using wording as adapted by
@@ -386,7 +542,7 @@ p3ceq |>
   labs(x = "P3CEQ total score", y = "Respondents", title = "P3CEQ total score distribution")
 ```
 
-### Care coordination subscale vs PaRIS 2023
+### Care coordination subscale vs PaRIS 2023 {#sec-carecoordinationsubscale}
 
 cohealth Kensington general practice previously conducted the P3CEQ survey in 2023 as part of PaRIS [ACSQHC, -@paris].
 193 patients aged 45+ years of the cohealth Kensington clinic returned a PaRIS survey.
