@@ -11,11 +11,14 @@ abstract: >-
   person-centred care result (18.8/24, 95% scoring positively) exceeded both the Australian PaRIS10
   Dashboard 2024 average (93%) and the OECD average (87%), and its care coordination subscale
   (10.4/15, "High") improved on Kensington's own 2023 PaRIS result (8.8) and the 2023 national
-  comparison group (9.8). Confidence to self-manage one's own health (58%) was comparable to the
-  Australian (61%) and OECD (59%) benchmarks. Overall, respondents reported a positive,
+  comparison group (9.8). However, more than half of respondents with a long-term condition either
+  did not have a care plan (36%) or were not sure whether they had one (22%). Confidence to
+  self-manage one's own health (58%) was slightly lower than the Australian (61%) and OECD (59%)
+  benchmarks. Respondents who speak a language other than English (and not English) at home
+  reported care coordination at least as high as English-only speakers (10.6 vs 10.0 out of 15)
+  but slightly lower person-centred care (17.8 vs 19.0 out of 24). Overall, respondents reported a positive,
   person-centred and well-coordinated care experience at Kensington relative to national and
-  international benchmarks, with no strong evidence that this varied systematically by the
-  demographic and clinical characteristics examined.
+  international benchmarks.
 number-sections: true
 date: today
 format:
@@ -29,7 +32,7 @@ format:
   pdf:
     toc: true
     toc-depth: 3
-    number-sections: false
+    number-sections: true
     fig-pos: "H"
     geometry:
       - margin=2.5cm
@@ -451,6 +454,27 @@ marked with a status other than 'No action' is now flagged for the clinician's a
 during the consultation. This encourages the clinician to review the correspondence at
 the time of the consultation, potentially improving the care coordination experience for the patient.
 
+### Potential avenues of future exploration and improvement
+
+* **Confidence to self-manage.** Although patients reported high levels of person-centred care,
+  their [confidence to manage their own health](#sec-self-manage-person-centred) (58% confident
+  or very confident) was slightly lower than the Australian (61%) and OECD (59%) averages.
+
+* **Language spoken at home.** Respondents who speak a language other than English (and not
+  English) at home reported care coordination at least as good as English-only speakers (care
+  coordination subscale 10.6 vs 10.0 out of 15), but slightly lower
+  [person-centred care](#sec-p3ceq-language) (person-centred subscale 17.8 vs 19.0 out of 24).
+  These differences are small and not statistically significant
+  ([see regression](#sec-p3ceq-predictors)), so they suggest a question worth exploring rather
+  than an established gap.
+
+* **Care planning.** Patients living with chronic conditions reported
+  [better care coordination than the Australian average](#sec-carecoordinationsubscale), and most
+  of those with a care plan found it useful (73% "to a large extent" or "completely") and felt
+  their care providers were following it (76%). However, more than half of respondents with a
+  long-term condition said they [did not have a care plan (36%) or were not sure whether they had
+  one (22%)](#sec-p3ceq-care-planning).
+
 ## P3CEQ: person-centred coordinated care experience
 
 Questions 4–20 of the survey reproduce the P3CEQ instrument, using wording as adapted by
@@ -611,7 +635,7 @@ ggplot(cc_compare, aes(pct, fct_rev(band), fill = series)) +
   guides(fill = guide_legend(reverse = TRUE))
 ```
 
-### Confidence to self-manage and person-centred care vs PaRIS10 Dashboard 2024
+### Confidence to self-manage and person-centred care vs PaRIS10 Dashboard 2024 {#sec-self-manage-person-centred}
 
 The OECD's PaRIS10 Dashboard [@oecd-paris] benchmarks two further P3CEQ-derived
 measures for primary care users aged 45+ living with one or more chronic conditions:
@@ -730,7 +754,7 @@ ggplot(paris10_compare, aes(series, pct, fill = series)) +
         axis.text.x = element_text(angle = 20, hjust = 1))
 ```
 
-### Item-level results
+### Item-level results {#sec-p3ceq-item-results}
 
 ```{r}
 #| label: fig-p3ceq-items
@@ -1158,6 +1182,87 @@ ggplot(subscale_summary, aes(condition_band, mean_score, group = subscale)) +
   theme(strip.text = element_text(face = "bold", colour = ink_primary, hjust = 0))
 ```
 
+#### P3CEQ Q7: care planning {#sec-p3ceq-care-planning}
+
+The chart below breaks P3CEQ Q7 into its four care planning sub-items and shows the response
+distribution against the number of long-term conditions reported. It is restricted to respondents
+who reported at least one long-term condition in Q9. Q7a (Q13 in the survey, "Do you have a care plan?") was asked of everyone, but Q7b–Q7d
+(Q14–Q16) were asked only of respondents who said "Yes" to Q7a. Their bars therefore show proportions
+*among respondents with a care plan*.
+
+```{r}
+#| label: fig-p3ceq-q7-by-conditions
+#| fig-cap: "P3CEQ Q7 care planning sub-items (Q13–Q16) by number of long-term conditions (Q9), respondents with 1+ condition"
+#| fig-width: 9
+#| fig-height: 7
+
+q7_vars <- c(q13 = "q13opts", q14 = "q14opts", q15 = "extent5", q16 = "extent5")
+
+q7_item_labels <- c(
+  q13 = "7a. Has a care plan (Q13)",
+  q14 = "7b. Care plan available to you (Q14)",
+  q15 = "7c. Care plan useful (Q15)",
+  q16 = "7d. Professionals follow the same plan (Q16)"
+)
+
+# One fill scale covers both the Yes/No/Not sure lists (q13opts, q14opts) and the extent5 list.
+# Levels run from most positive to most negative, then "Not sure", so position_fill stacks the
+# positive answers at the top of each bar. P3CEQ scores "Not sure" as 0, the same as a negative
+# answer, but it's shown in grey here so it can be told apart from an explicit "No"/"Not at all".
+q7_response_levels <- c("Yes", "Completely", "To a large extent", "To some extent",
+                        "No", "Not at all", "Not sure")
+q7_response_colours <- c(
+  "Yes"               = "#1c5cab",
+  "Completely"        = "#1c5cab",
+  "To a large extent" = "#6da7ec",
+  "To some extent"    = "#f5c3a8",
+  "No"                = "#eb6834",
+  "Not at all"        = "#eb6834",
+  "Not sure"          = "#c3c2b7"
+)
+
+q7_by_conditions <- survey |>
+  select(KEY, all_of(names(q7_vars))) |>
+  inner_join(q9_conditions, by = "KEY") |>
+  filter(n_conditions >= 1) |> # only respondents reporting 1+ long-term condition
+  mutate(condition_band = fct_drop(condition_band, only = "0")) |>
+  pivot_longer(all_of(names(q7_vars)), names_to = "item", values_to = "value") |>
+  filter(!is.na(value)) |> # skipped by SurveyCTO relevance (q14-q16 when q13 != Yes)
+  mutate(
+    response = map2_chr(item, as.character(value), \(i, v) choice_labels(q7_vars[[i]])[[v]]),
+    response = factor(response, levels = q7_response_levels),
+    item = factor(q7_item_labels[item], levels = q7_item_labels)
+  )
+
+q7_summary <- q7_by_conditions |>
+  count(item, condition_band, response) |>
+  group_by(item, condition_band) |>
+  mutate(n_band = sum(n), pct = n / n_band * 100) |>
+  ungroup()
+
+q7_band_n <- q7_summary |> distinct(item, condition_band, n_band)
+
+ggplot(q7_summary, aes(condition_band, pct, fill = response)) +
+  geom_col(width = 0.7, colour = "white", linewidth = 0.3) +
+  geom_text(data = q7_band_n, aes(condition_band, 100, label = paste0("n=", n_band)),
+            inherit.aes = FALSE, vjust = -0.5, size = 2.8, colour = ink_muted) +
+  # legend lists only the responses actually given ("Not at all" has had no takers so far, and an
+  # unused level would otherwise show as an empty legend key)
+  scale_fill_manual(values = q7_response_colours,
+                    breaks = intersect(q7_response_levels, as.character(q7_summary$response))) +
+  scale_y_continuous(limits = c(0, 108), breaks = seq(0, 100, 25),
+                     labels = \(x) paste0(x, "%"), expand = expansion(mult = c(0, 0))) +
+  facet_wrap(~item, ncol = 2) +
+  labs(x = "Number of long-term conditions (Q9)", y = "Share of respondents answering the item",
+       title = "P3CEQ Q7 care planning by number of long-term conditions",
+       subtitle = "Respondents with 1+ long-term condition; 7b–7d asked only of those with a care plan (\"Yes\" to 7a)") +
+  guides(fill = guide_legend(nrow = 2, byrow = TRUE)) +
+  theme(strip.text = element_text(face = "bold", colour = ink_primary, hjust = 0),
+        panel.grid.major.x = element_blank(),
+        panel.grid.major.y = element_line(colour = grid_col, linewidth = 0.3),
+        panel.spacing = unit(1.2, "lines"))
+```
+
 #### RACGP care continuity and coordination questions
 
 The same Q9-answered group is compared against the four care continuity and coordination items
@@ -1308,7 +1413,7 @@ other_langs |>
                           languages$n[languages$label == "Other"], " respondents who selected \"Other\""))
 ```
 
-### P3CEQ subscales by language spoken at home
+### P3CEQ subscales by language spoken at home {#sec-p3ceq-language}
 
 The chart below is restricted to respondents who answered Q25 and who recorded at least one
 long-term condition in Q9 (per `q9_conditions` above, so a Q9 skip is excluded rather than counted
@@ -1417,7 +1522,7 @@ ggplot(q24_summary, aes(attended_other_gp, mean_score)) +
   theme(strip.text = element_text(face = "bold", colour = ink_primary, hjust = 0))
 ```
 
-### Predictors of P3CEQ scores: language, gender, age and number of chronic conditions
+### Predictors of P3CEQ scores: language, gender, age and number of chronic conditions {#sec-p3ceq-predictors}
 
 Estimates through a multiple linear regression the association of language spoken at home (Q25), gender
 (Q22), age band (Q26) and number of long-term conditions (Q9, entered as a linear term, capped at
@@ -1585,6 +1690,11 @@ document.addEventListener("DOMContentLoaded", function () {
 **Source code:** <https://github.com/DavidPatShuiFong/KensingtonPatientSurvey2026/>
 :::
 
+## References {-}
+
+::: {#refs}
+:::
+
 ## Notes
 
 ### Age-sex standardisation {#sec-standardisation}
@@ -1623,6 +1733,24 @@ subscale_summary |>
     n
   ) |>
   kable(align = "llrr")
+```
+:::
+
+::: {.callout-note collapse="true"}
+### P3CEQ Q7 care planning sub-items by number of long-term conditions: sample sizes
+
+```{r}
+#| label: tbl-p3ceq-q7-by-conditions
+#| tbl-cap: "P3CEQ Q7 care planning sub-items (Q13–Q16) by number of long-term conditions, respondents with 1+ condition: response counts"
+
+q7_summary |>
+  mutate(cell = paste0(n, " (", round(pct), "%)")) |>
+  select(item, condition_band, n_band, response, cell) |>
+  pivot_wider(names_from = response, values_from = cell, values_fill = "–",
+              names_sort = TRUE) |>
+  arrange(item, condition_band) |>
+  rename(Item = item, `Number of conditions` = condition_band, n = n_band) |>
+  kable(align = "llr")
 ```
 :::
 
@@ -1716,9 +1844,4 @@ map_dfr(names(reg_models), function(nm) {
 }) |>
   kable(align = "lrrrr")
 ```
-:::
-
-## References {-}
-
-::: {#refs}
 :::
