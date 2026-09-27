@@ -416,6 +416,8 @@ was uncertain. The same 2026 patient survey showed that the improvement in patie
 experience of care coordination was achieved despite continuing high levels of patient
 chronic disease burden, financial disadvantage and non-English speaking background.
 
+### Measures that may have improved care coordination between 2023 and 2026
+
 Following cohealth Kensington's participation in the PaRIS survey in 2023, several changes
 were made that may have benefited care coordination.
 
@@ -474,6 +476,15 @@ the time of the consultation, potentially improving the care coordination experi
   their care providers were following it (76%). However, more than half of respondents with a
   long-term condition said they [did not have a care plan (36%) or were not sure whether they had
   one (22%)](#sec-p3ceq-care-planning).
+  
+* **Improve communication between cohealth Kensington general practice and other services.** 
+  Improved communication with other services improved during the 2023--2026 period,
+  but can be improved further. Pilot programs are underway to improve communication
+  between primary care and the tertiary hospital-based Western Health (similar to the already mentioned and implemented
+  'Parkville Connect'). This is expected to be of great benefit as many cohealth
+  Kensington patients attend Western Health. Efforts are also underway to further
+  improve the sharing of progress notes and/or appointment and service information
+  between cohealth general practices and cohealth allied health services.
 
 ## P3CEQ: person-centred coordinated care experience
 
