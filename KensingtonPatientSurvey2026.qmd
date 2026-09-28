@@ -30,6 +30,9 @@ format:
     embed-resources: true
     theme: flatly
   pdf:
+    documentclass: scrartcl
+    papersize: a4
+    fontsize: 12pt
     toc: true
     toc-depth: 3
     number-sections: true
@@ -37,6 +40,11 @@ format:
     geometry:
       - margin=2.5cm
     echo: false
+    include-in-header:
+      text: |
+        \usepackage{float}
+        \floatplacement{figure}{H}
+        \usepackage{libertinus}
 execute:
   warning: false
   message: false
