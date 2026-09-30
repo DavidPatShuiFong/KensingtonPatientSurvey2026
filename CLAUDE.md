@@ -27,6 +27,13 @@ is genuinely obsolete after a change, say so explicitly rather than silently del
   unlike the HTML format's `code-fold: true`) and figures use `dev = "cairo_pdf"` when
   `knitr::is_latex_output()` so Unicode characters (en dashes, etc.) in chart text render
   correctly — do not add figure-generating code that assumes the base R `pdf()` device.
+- `quarto render --profile no-comments --to html` renders a variant without the respondents'
+  free-text comments (the "What patients said" section, plus the sentence linking to it) to
+  `KensingtonPatientSurvey2026-no-comments.html`. The profile is `_quarto-no-comments.yml`; the
+  content is dropped with `::: {.content-hidden when-profile="no-comments"}` divs in the `.qmd`.
+  Free-text "Other" answers (`q9_other`, `q25_other`) stay in. Wrap any new respondent comment
+  output the same way. Always pass `--to html` with this profile, otherwise the PDF render
+  overwrites `KensingtonPatientSurvey2026.pdf` with a copy that has no comments.
 - There is no package manager lockfile (no `renv.lock`) and no test suite — this is a single-document
   Quarto analysis project, not an R package.
 - Read the Excel form definition with `readxl::read_excel(path, sheet = "survey"|"choices"|"settings")`

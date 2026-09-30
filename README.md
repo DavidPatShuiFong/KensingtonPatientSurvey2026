@@ -20,7 +20,12 @@ Render it to HTML (default) or PDF:
 ```sh
 quarto render                     # KensingtonPatientSurvey2026.html, self-contained
 quarto render --to pdf            # KensingtonPatientSurvey2026.pdf
+quarto render --profile no-comments --to html   # KensingtonPatientSurvey2026-no-comments.html
 ```
+
+The `no-comments` profile (`_quarto-no-comments.yml`) leaves out the "What patients said" section
+(respondents' free-text comments on Q1–Q3 and Q21 suggestions), e.g. for wider circulation. Free-text
+"Other" answers (other languages, other long-term conditions) are still included.
 
 The HTML version has fold/show-code toggles on every code chunk; the PDF hides code by default
 so it reads as a plain report. PDF rendering needs a LaTeX install — [TinyTeX](https://quarto.org/docs/output-formats/pdf-engine.html) is the easiest way

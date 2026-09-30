@@ -1,0 +1,11 @@
+# "no-comments" profile: renders the report without the respondents' free-text comments
+# (Q1-Q3 comments and Q21 suggestions in "What patients said"), e.g. for wider circulation.
+# Free-text "Other" answers (other languages, other long-term conditions) are still included.
+# The content itself is hidden in the .qmd with `.content-hidden when-profile="no-comments"` divs.
+#
+#   quarto render --profile no-comments --to html
+#
+# Written to its own file so it doesn't overwrite the full report.
+format:
+  html:
+    output-file: KensingtonPatientSurvey2026-no-comments.html

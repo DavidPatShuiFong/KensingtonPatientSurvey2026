@@ -27,3 +27,6 @@ paper_survey_entry_log.md
 
 # Playwright MCP tool scratch output (page snapshots/screenshots), not project content
 /.playwright-mcp/
+.positai
+
+*.log

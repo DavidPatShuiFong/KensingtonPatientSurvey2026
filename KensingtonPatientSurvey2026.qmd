@@ -852,9 +852,12 @@ rate7_long |>
   theme(legend.position = "top")
 ```
 
+<!-- hidden in the "no-comments" profile (see _quarto-no-comments.yml), along with the section it links to -->
+::: {.content-hidden when-profile="no-comments"}
 Patients were invited to 'free-text' comment on their experience with reception, privacy
 and coordination. These comments can be read in
 [What patients said](#sec-comment_racgp_q).
+:::
 
 ## Long-term conditions
 
@@ -1638,6 +1641,9 @@ reg_coefs |>
   theme(strip.text = element_text(face = "bold", colour = ink_primary, hjust = 0))
 ```
 
+<!-- The whole "What patients said" section is left out of the "no-comments" profile
+(`quarto render --profile no-comments --to html`, see _quarto-no-comments.yml). -->
+::: {.content-hidden when-profile="no-comments"}
 ## What patients said {#sec-comment_racgp_q}
 
 Questions 1, 2 and 3 invited respondents to comment on reception, privacy and coordination.
@@ -1681,6 +1687,7 @@ Question 21 asked what one thing respondents would change about the practice.
 
 comment_table("q21", "Suggested changes")
 ```
+:::
 :::
 
 ::: {.content-visible when-format="html"}
