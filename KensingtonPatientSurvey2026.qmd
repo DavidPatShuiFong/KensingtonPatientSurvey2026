@@ -1,24 +1,28 @@
 ---
 title: "cohealth Kensington GP Clinic — Patient Feedback Survey 2026"
 subtitle: "P3CEQ person-centred care results and patient experience summary"
-abstract: >-
-  This report summarises 161 patient responses (94 online, 67 paper) to the 2026 cohealth
+abstract: |
+  This report summarises 164 patient responses (97 online, 67 paper) to the 2026 cohealth
   Kensington GP clinic patient feedback survey, combining RACGP-recommended items on reception,
   privacy and care coordination with the validated P3CEQ (Person-Centred Coordinated Care
-  Experience Questionnaire). The average P3CEQ total score was 21.8 out of 30 (person-centred
-  subscale 18.6/24; care coordination subscale 10.1/15). Among respondents aged 45 and over with a
-  long-term condition, age-sex standardised to the OECD PaRIS reference population, Kensington's
-  person-centred care result (18.8/24, 95% scoring positively) exceeded both the Australian PaRIS10
-  Dashboard 2024 average (93%) and the OECD average (87%), and its care coordination subscale
-  (10.4/15, "High") improved on Kensington's own 2023 PaRIS result (8.8) and the 2023 national
-  comparison group (9.8). However, more than half of respondents with a long-term condition either
-  did not have a care plan (36%) or were not sure whether they had one (22%). Confidence to
-  self-manage one's own health (58%) was slightly lower than the Australian (61%) and OECD (59%)
+  Experience Questionnaire). The average P3CEQ total score was 21.7 out of 30 (person-centred
+  subscale 18.5/24; care coordination subscale 10.1/15).
+  
+  Among respondents aged 45 and over with a long-term condition, age-sex standardised to the
+  OECD PaRIS reference population, Kensington's person-centred care result (18.6/24, 94% scoring positively)
+  exceeded both the Australian PaRIS10 Dashboard 2024 average (93%) and the OECD average (87%).
+  Kensington's care coordination subscale (10.3/15, "High") improved on Kensington's own 2023 PaRIS
+  result (8.8) and the 2023 national comparison group (9.8). However, more than half
+  of respondents with a long-term condition either did not have a care plan (37%) or were
+  not sure whether they had a care plan (23%).
+  
+  Confidence to self-manage one's own health (57%) was slightly lower than the Australian (61%) and OECD (59%)
   benchmarks. Respondents who speak a language other than English (and not English) at home
   reported care coordination at least as high as English-only speakers (10.6 vs 10.0 out of 15)
-  but slightly lower person-centred care (17.8 vs 19.0 out of 24). Overall, respondents reported a positive,
-  person-centred and well-coordinated care experience at Kensington relative to national and
-  international benchmarks.
+  but slightly lower person-centred care (17.8 vs 18.9 out of 24).
+  
+  Overall, respondents reported a positive, person-centred and well-coordinated care experience at Kensington
+  relative to national and international benchmarks.
 number-sections: true
 date: today
 format:
@@ -45,6 +49,13 @@ format:
         \usepackage{float}
         \floatplacement{figure}{H}
         \usepackage{libertinus}
+  docx:
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    highlight-style: github
+    papersize: a4
+    echo: false
 execute:
   warning: false
   message: false
@@ -352,7 +363,7 @@ n_online <- n_consented - n_paper
 # patient actually filled it in (paper collection dates are given in the prose below instead).
 dates <- raw |>
   filter(!is_paper) |>
-  mutate(submit_dt = lubridate::dmy_hms(SubmissionDate)) |>
+  mutate(submit_dt = lubridate::parse_date_time(SubmissionDate, orders = c("dmy HMS", "mdy HMS"))) |>
   summarise(first = min(submit_dt, na.rm = TRUE), last = max(submit_dt, na.rm = TRUE))
 
 med_duration <- median(survey$duration[!survey$is_paper], na.rm = TRUE) / 60
@@ -467,7 +478,7 @@ the time of the consultation, potentially improving the care coordination experi
 ### Potential avenues of future exploration and improvement
 
 * **Confidence to self-manage.** Although patients reported high levels of person-centred care,
-  their [confidence to manage their own health](#sec-self-manage-person-centred) (58% confident
+  their [confidence to manage their own health](#sec-self-manage-person-centred) (57% confident
   or very confident) was slightly lower than the Australian (61%) and OECD (59%) averages.
 
 * **Language spoken at home.** Respondents who speak a language other than English (and not
@@ -481,9 +492,9 @@ the time of the consultation, potentially improving the care coordination experi
 * **Care planning.** Patients living with chronic conditions reported
   [better care coordination than the Australian average](#sec-carecoordinationsubscale), and most
   of those with a care plan found it useful (73% "to a large extent" or "completely") and felt
-  their care providers were following it (76%). However, more than half of respondents with a
-  long-term condition said they [did not have a care plan (36%) or were not sure whether they had
-  one (22%)](#sec-p3ceq-care-planning).
+  their care providers were following the same plan (76%). However, more than half of respondents with a
+  long-term condition said they [did not have a care plan (37%) or were not sure whether they had
+  one (23%)](#sec-p3ceq-care-planning).
   
 * **Improve communication between cohealth Kensington general practice and other services.** 
   Improved communication with other services improved during the 2023--2026 period,
