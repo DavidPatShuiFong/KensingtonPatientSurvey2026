@@ -1,0 +1,287 @@
+---
+title: "Claude Code in this project"
+subtitle: "How the Kensington Patient Survey 2026 report was built with AI assistance"
+date: today
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    code-fold: true
+    code-summary: "Show the code"
+    embed-resources: true
+    theme: flatly
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: setup
+library(tidyverse)
+library(knitr)
+
+# Pull commit-level facts straight from this repo's git history rather than hardcoding
+# them, so the counts below stay accurate as the project continues. This only works when
+# rendered inside a clone of the git repository (not from an exported copy of the .qmd alone).
+git_log <- system2("git", c("log", "--format=%H::%ad::%s", "--date=short"), stdout = TRUE)
+commits <- tibble(raw = git_log) |>
+  separate(raw, into = c("hash", "date", "subject"), sep = "::", extra = "merge")
+
+bodies <- system2("git", c("log", "--format=%H%n%B%n---END---"), stdout = TRUE) |>
+  paste(collapse = "\n") |>
+  str_split("---END---\\n?") |>
+  pluck(1) |>
+  discard(~ str_trim(.x) == "")
+
+has_claude_trailer <- map_lgl(bodies, ~ str_detect(.x, "(?m)^Co-Authored-By: Claude"))
+n_commits <- length(bodies)
+n_claude  <- sum(has_claude_trailer)
+date_range <- range(commits$date)
+```
+
+## About this document
+
+This is a plain factual account of how [Claude Code](https://claude.com/claude-code) (Anthropic's
+agentic coding CLI) has actually been used on this repository, built from evidence left in the
+repo itself — git commit messages and trailers, `CLAUDE.md`, the `.claude/settings.local.json`
+permission allowlist, Playwright MCP scratch files, and (for the "How prompts have guided and
+corrected the work" section) two local Claude Code session transcripts found on this machine at
+`~/.claude/projects/-home-vkelim-Rprojects-KensingtonPatientSurvey2026/*.jsonl`, which record every
+prompt submitted to those two sessions verbatim.
+
+Those transcripts cover one short session on 2026-09-19 and one long session spanning
+2026-09-20–22; no local transcript survives for the commits made 2026-09-11–18 or 2026-09-23–10-03,
+so prompts for that earlier/later work aren't available by this route and aren't quoted below (see
+[Caveats](#caveats-on-this-analysis)).
+
+Across `r n_commits` commits between `r date_range[1]` and `r date_range[2]`,
+**`r n_claude` commits (`r scales::percent(n_claude/n_commits, accuracy = 1)`) carry a
+`Co-Authored-By: Claude` trailer** — the convention this project's commits use to mark a commit as
+having been produced (at least in part) through a Claude Code session, versus one written directly
+by the human author, David Fong, without Claude's involvement. That split is the main evidence base
+for this document.
+
+## Major components of the project
+
+The project is a single Quarto report, `KensingtonPatientSurvey2026.qmd` (~1,880 lines, 39 R
+chunks), that turns a SurveyCTO export into a patient-feedback analysis. Its major pieces:
+
+- **Form-aware data loading** — reads the raw CSV export alongside the SurveyCTO XLSForm
+  (`kensington_p3ceq_2026_surveycto.xlsx`) and builds label lookups (`choice_labels()`,
+  `item_label()`) from the xlsx rather than hardcoding option text, plus `strip_html()` and
+  PAPER-marker detection/stripping for paper-transcribed responses.
+- **P3CEQ scoring** — nine `recode_*()` functions that map SurveyCTO's raw integer codes onto the
+  validated P3CEQ instrument's official [0–3] scale (including a reverse-scored item,
+  `recode_yesdef_reverse()`), then the Q7 care-plan average, the 0–30 total score, and the PC/CC
+  subscales.
+- **External benchmarking** — age-sex direct standardisation to the OECD PaRIS reference
+  population (`standardise()`), used to compare Kensington's care-coordination and person-centred
+  care results against the 2023 PaRIS comparison group and the 2024 PaRIS10 Dashboard
+  (Australia/OECD), with reference figures read directly off supplied chart images where no digital
+  source existed.
+- **Descriptive charts/tables** — item-level P3CEQ distributions, RACGP reception/privacy/
+  coordination ratings, long-term-conditions prevalence (including combination-aware
+  `summarise_multiselect_combos()` for concession cards), and respondent demographics.
+- **Subgroup comparison and regression** — PC/CC subscales and care-planning broken down by
+  condition count, language spoken at home, and other-GP attendance; `lm()` models predicting
+  P3CEQ scores from those plus gender and age band.
+- **Multi-format, multi-audience output** — one `.qmd` source renders to self-contained HTML, PDF
+  (`scrartcl`/libertinus, `cairo_pdf` figures), and Word, plus a `no-comments` HTML profile that
+  drops respondents' free-text comments via `content-hidden` divs for wider circulation.
+
+## How Claude Code has been used
+
+**As a co-author on about half of all commits.** `r n_claude` of `r n_commits` commits carry a
+`Co-Authored-By: Claude` trailer (`Claude Opus 5.5` on 2, `Claude Sonnet 5` on 22), spanning new
+analysis sections (e.g. the PaRIS benchmarking comparisons, the regression section, the Q24/Q25/Q9
+subgroup breakdowns), bug fixes (an inverted scoring formula, a legend clipping a data series, a
+broken PDF cross-reference), and small infrastructure work (README sync, a `.claude/settings.json`
+permission allowlist, untracking a settings file). Two of the commits record a
+`Claude-Session: https://claude.ai/code/session_...` link, tying a cluster of commits back to one
+continuous session.
+
+**Guided by a persistent instruction file.** `CLAUDE.md` is the project's standing brief to Claude
+Code: it documents the render commands, which two data files are gitignored (and why — real patient
+data and a copyrighted instrument — so Claude knows not to try to regenerate them from git), and,
+most importantly, the full P3CEQ raw-code → [0–3] recode mapping table for every item. That table
+exists specifically so Claude (and any future contributor) doesn't have to re-derive scoring logic
+from the instrument PDF each time, and so an error in it doesn't get silently repeated — see
+[Correcting the process](#how-prompts-have-guided-and-corrected-the-work) below for a case where the
+table itself was the source of a bug.
+
+**Checking its own rendered output.** `.playwright-mcp/` holds `browser_snapshot`/console-log
+output from a Playwright MCP browser session dated 2026-09-19, and the permission allowlist in
+`aa19fef` was explicitly "based on a scan of this project's session transcripts" and grants only
+read-only Playwright tools (`browser_snapshot`, `browser_find`) plus `command -v`. Together these
+indicate Claude Code opened the rendered HTML report in a real browser to visually verify chart/
+layout changes rather than relying solely on the R console, and that the user reviewed what tools it
+had used before deciding what to allow unprompted in future.
+
+**Verifying LaTeX output, not just guessing at it.** Two separate PDF cross-reference bugs
+(`507d207`, `5aea1e7`) were confirmed by compiling the intermediate `.tex` file directly and
+inspecting it, rather than assuming the fix worked — the commit messages note this explicitly
+("confirmed by compiling the intermediate .tex directly").
+
+**Leaving a durable, locally-readable record of its own sessions.** Claude Code writes a full
+transcript of every session (every prompt, tool call, and response) to
+`~/.claude/projects/<project>/*.jsonl` on the machine it ran on. Two such transcripts survive for
+this project and are the source for the real prompt quotes in the next section.
+
+## How prompts have guided and corrected the work
+
+This section now quotes the actual prompts, pulled from the two surviving session transcripts
+(timestamps below are converted from the transcripts' UTC to the repo's local AEST commit
+timestamps, so the two can be compared directly).
+
+### Session 1 — 2026-09-19, a single prompt
+
+This session consists of exactly one human-written prompt (confirmed by the transcript's
+`last-prompt` field staying identical across the whole session) — everything else is Claude reading
+the data, loading the `dataviz` skill, and building the result:
+
+> *"for patients who have answered the question asking about chronic conditions (Q9), i.e. not for
+> those who left question 9 blank, and who also answered the question about a care plan being in
+> place and/or followed (7a-7d), plot graphs of proportion of patients who have a care plan in
+> place, found it useful, or thought the plan was being followed vs the number of chronic
+> conditions. Similarly, for those who answered Q9, compare the number of conditions to the way they
+> answered 'clinic-specific experience' questions in Q3..."*
+
+This produced an original "care plan measures by number of conditions" section — which the very next
+session then replaced (see below), a case of Claude's earlier work being superseded by the human's
+own change of direction rather than a bug.
+
+### Session 2 — 2026-09-20 to 09-22, iterative direction and correction
+
+This is the long session behind most of the `p3ceq-subscales-by-*` work. A representative sequence,
+in order, with the commit each one fed into:
+
+| Local time (AEST) | Prompt | Commit |
+|---|---|---|
+| Sep 20, 13:56 | *"replace the section comparing number of chronic conditions with specific questions about care planning. compare the P3CEQ subscores (coordinated care and patient-centred care) with the number of patient stated chronic conditions instead... no age restriction."* | `d3bfb84` |
+| Sep 20, 17:26 | *"create a similar plot comparing P3CEQ subscales (again, all ages) compared to language spoken (Q25). Compare only those who answered Q25. Language categories are English only, all other languages (but no English) and those who chose both English and another languages."* | folded into `d3bfb84` |
+| Sep 20, 17:51 | *"for P3CEQ subscale scores by language, restrict to patients who recorded at least one chronic condition (q9)"* | folded into `d3bfb84` |
+| Sep 20, 17:58 | *"the legend of 'clinic-specific experience by number of conditions' has only three series visible, but there are four series (due to four sub-questions in Q3)"* — a bug report, 4 minutes after `d3bfb84` was committed | `7375402` |
+| Sep 20, 20:08 | *"for patients with one or more conditions (q9) and answered the language question (Q25)... run a regression analysis to predict P3CEQ score and subscores"* | `891df3f` |
+| Sep 20, 20:15 | *"modify the regression analysis so that the number of chronic conditions is also a (linear) predictor"* | folded into `891df3f` |
+| Sep 20, 22:45 | *"for the regression analysis... is n_conditions 'binned' so that all patients with 5 or more conditions are counted as having 5 conditions?"* — the human checking Claude's own work, not just directing it | — |
+| Sep 20, 22:46 | *"use condition_band (capped at 5+) instead of raw count"* | `1aa6b70` |
+| Sep 21–22, 04:00–04:08 | *"Compare P3CEQ subscales (all ages) compared to whether the respondent has been to another general practice in the last year (Q24)... Add the response to Q24 to the regression analysis"* then *"...restrict to patients who have at least one long-term condition."* | `2cc3f5d` |
+| Sep 22, 10:04 | *"i modified the .qmd file, including removing the 'attendance at another general practice' as a predictor."* | — (see [Manual edits](#manual-edits-where-the-human-adjusted-the-code-directly)) |
+| Sep 22, 10:05 | *"drop 'and other GP attendance' from the title"* | `b3a9db3`, committed 10:06 |
+| Sep 22, 20:12 | `/fewer-permission-prompts` (a slash command, not free text) | `aa19fef` |
+| Sep 22, 20:25 | *"add this reference to the yaml 'Lloyd H, Fosh B, Whalley B, Byng R, Close J...'"* (full citation pasted) | `6f43ec7`, committed 20:46 |
+| Sep 22, 20:49 | *"don't add the .claude/settings.json file to git"* | `0a2e122`, committed 20:50 — 17 seconds later |
+| Sep 22, 21:59 & 23:00 | Two further full citations pasted to add to the bibliography (Maeng et al. 2012; Burgers et al. 2010; then Grembowski et al. 2014) | `507d207` |
+| Sep 22, 23:09 | *"review the language in 'background, findings and commentary'. make suggestions for clarity and comprehensibility."* | — |
+| Sep 22, 23:27 | *"thanks. I made the edits manually. please review the same section again"* | — (see below) |
+| Sep 22, 23:36 | *"fixed the crossref, but it doesn't render in PDF"* | `507d207`, committed 23:44 |
+
+Two exchanges in that sequence are worth calling out specifically, because they show the human
+checking Claude's reasoning rather than just issuing requests: asking whether `n_conditions` was
+already capped before being told it wasn't (then directing the actual fix), and asking Claude to
+*suggest* language edits, applying them manually, and only then asking Claude to re-review — Claude
+was used as an editor/reviewer for that paragraph, not as the one typing the final wording.
+
+The *"fixed the crossref, but it doesn't render in PDF"* prompt is a genuine correction: the human
+had already tried to fix a broken cross-reference themselves (manually, per the surrounding
+exchange) and it still didn't work in the PDF output; Claude then found the actual cause
+(`@sec-` crossrefs resolve via LaTeX's `\ref{}`, which prints nothing once `number-sections: false`
+suppresses section numbers in the PDF) and fixed it with a plain markdown link instead — confirmed,
+per the commit message, by compiling the intermediate `.tex` file directly rather than trusting the
+rendered PDF alone.
+
+A separate, recurring pattern across several commits (`86c80ca`, `071c68d`, `d3bfb84`) — not
+captured in the prompt table above, since it was Claude's own finding rather than something asked
+for — is a data-quality trap Claude caught and fixed: SurveyCTO's exploded `q9_*`/`q25_*`
+multi-select indicator columns are filled with `0` — never `NA` — even when the parent question was
+skipped entirely, so an "answered this question" filter built on those indicator columns silently
+included non-respondents as if they'd answered "no" to every option. The fix (reading "answered" off
+the raw, un-exploded column instead) and the reasoning are both recorded in the commit message and
+now as inline code comments (e.g. `KensingtonPatientSurvey2026.qmd:1175-1179`, `:1466-1468`).
+
+A bug from the period with no surviving transcript is still worth noting from the commit record
+alone: **`0083104c` — "Fix inverted P3CEQ Q4 scoring."** `q7` (P3CEQ's Q4, "repeated information")
+is negatively framed, unlike the other `yesdef`-scale items, so applying the same recode function
+as the others inverted its scoring. The commit message adds: *"Also corrects CLAUDE.md's recode
+table, which had documented this item as 'same as above' — the source of the original mistake"* —
+the persistent instruction file had the wrong rule, Claude's code had faithfully followed it, and
+the fix corrected the brief as well as the code. The same commit added `CLAUDE.md`'s "Preserve user
+comments" rule, consistent with it having been written down right after a comment went missing
+during an earlier edit.
+
+## Manual edits: where the human adjusted the code directly
+
+Three kinds of evidence point to code the human changed without Claude:
+
+**The human saying so, directly, inside a Claude Code session.** The long 2026-09-20–22 transcript
+has two unambiguous first-person statements of manual editing, mid-session:
+
+- *"i modified the .qmd file, including removing the 'attendance at another general practice' as a
+  predictor."* — told to Claude at 10:04 on Sep 22, two minutes before `b3a9db3` ("Fix regression
+  section title left over from Q24-predictor removal") was committed. The human had removed Q24 as
+  a regression predictor directly in the `.qmd`, which left the section heading referring to it;
+  Claude was then asked to drop it from the title and caught that the heading was now the only
+  leftover reference.
+- *"thanks. I made the edits manually. please review the same section again"* — after Claude
+  suggested wording changes to the "Background, findings and commentary" section's language, the
+  human applied some of them by hand rather than having Claude edit the file, then asked for a
+  second review pass. The next prompt, *"fixed the crossref, but it doesn't render in PDF"*, reports
+  the result of a further manual attempt at a cross-reference fix in that same section — one that
+  didn't actually work, which Claude then diagnosed and fixed properly (see above).
+
+**Explicit disclosure inside a Claude-authored commit.** Twice, a commit co-authored by Claude
+explicitly separates out changes the human had already made before Claude's work was added, so the
+trailer doesn't misattribute them:
+
+- `0083104c` lists, as *"pre-existing uncommitted edits, not authored by Claude"*: a new
+  references/citations block, a reworded "About this report" section, an expanded participation
+  methodology section (paper vs. online administration, the SMS invitation to 948 eligible
+  patients), a few explanatory code comments in the setup/load-data chunks, and an
+  `editor: source` YAML front-matter addition.
+- `e4fcc23c` notes *"pending edits not authored by Claude"*: bumping `toc-depth` from 2 to 3 in both
+  HTML and PDF formats, and adding an explicit `## References {-}` heading with a `#refs` div so the
+  bibliography has a visible section title instead of appearing implicitly at the document's end.
+
+**Commits with no Claude trailer at all** (`r n_commits - n_claude` of them) — the default reading
+is that these were written directly by the human, without a Claude Code session. Several are
+small, targeted edits to a report Claude had been working on moments before or after:
+
+| Commit | What changed | Nature of the edit |
+|---|---|---|
+| `2b7229e` | `guides(fill = guide_legend(reverse = TRUE))` added to flip a legend's key order | One-line `ggplot2` fix, with an inline comment explaining why |
+| `806b578` | `lubridate::mdy_hms()` → `dmy_hms()` for `SubmissionDate` parsing | A real date-parsing bug fix — the collection-period dates had been wrong |
+| `893ea06` | Added `documentclass: scrartcl`, `papersize`, `fontsize`, and a `libertinus` font package to the PDF YAML | LaTeX/typographic styling, no R logic touched |
+| `3499483` | New "Measures that may have improved care coordination..." subheading, plus a new prose bullet on Parkville Connect/Western Health communication pilots | Hand-written narrative/commentary content |
+| `a68a781` | Wrapped the comments cross-reference sentence and the whole "What patients said" section in `::: {.content-hidden when-profile="no-comments"}` divs | Structural Quarto markup change implementing the no-comments publishing profile |
+| `b9d382a` | Added a `docx:` format block to the YAML; rewrote abstract wording and updated every statistic in it as two more surveys came in | Output-format addition plus manual re-synchronisation of reported figures to the latest data |
+
+These range from trivial (a single `ggplot2` argument) to substantive (a new output format, a new
+written section, a real bug fix in date parsing) — evidence that the human both reviews and
+directly edits the `.qmd` rather than treating Claude's output as final, and is comfortable writing
+R/Quarto code themselves when it's faster than describing the change.
+
+## Caveats on this analysis
+
+- The `Co-Authored-By: Claude` trailer is a convention this project's sessions follow (per the
+  attribution instructions given to Claude Code), not a cryptographic guarantee — a commit lacking
+  the trailer is the best available signal that the human wrote it unassisted, but isn't certain
+  proof.
+- **Prompt quotes above come from only 2 of the project's many working sessions** — the two local
+  Claude Code session transcripts that happen to still exist on this machine
+  (`c0a3b337-...jsonl`, 2026-09-19; `7f5fbcb1-...jsonl`, 2026-09-20–22). They cover the commits from
+  `d3bfb84` through `507d207`/`82f2b7c` — roughly a third of the repo's history. No local transcript
+  survives for the commits from 2026-09-11–18 (the initial report, PDF option, Q4 scoring fix) or
+  from 2026-09-23 onward (background/commentary follow-ups, the care-planning-by-conditions section,
+  Word output, abstract updates); those sections of the document still rely on commit-message
+  reconstruction, not quoted prompts. It's possible those sessions' local transcripts were rotated
+  or deleted, or that some of that work went through a different interface (e.g. the user has
+  referenced a separate Claude.ai web chat, "Integrating PaRIS Health Survey questions into patient
+  feedback," which this document still has no access to).
+- Session transcripts record what was typed into Claude Code, not what happened outside it — the
+  "manual edit" quotes above are the human *telling* Claude what they'd changed, not something
+  independently verified against the file. The diff-based evidence elsewhere in this document (the
+  commit table, the `0083104c`/`e4fcc23c` disclosures) remains the more directly verifiable source.
+- Line-level attribution within a single commit (which exact lines Claude wrote vs. the human, when
+  both are present) is only available where the commit message says so explicitly, as in `0083104c`
+  and `e4fcc23c`; outside those two cases, a mixed commit's diff cannot be split by author from the
+  repo alone.
