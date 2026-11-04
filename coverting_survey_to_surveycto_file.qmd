@@ -1,0 +1,263 @@
+---
+title: "Building the cohealth Kensington Patient Feedback Survey in SurveyCTO"
+subtitle: "A project record of how the SurveyCTO XLSForm was created with Claude"
+author: "cohealth Kensington"
+date: "2026-11-04"
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    theme: cosmo
+    embed-resources: true
+  pdf:
+    toc: true
+    number-sections: true
+    documentclass: article
+    geometry:
+      - margin=1in
+---
+
+## Purpose of this document
+
+This document records how the cohealth Kensington 2026 patient feedback survey
+was converted from a paper RACGP / P3CEQ questionnaire into a SurveyCTO
+XLSForm for anonymous web and SMS distribution. It describes the major steps
+in the project, the part Claude played at each step, and — importantly — how
+the user's prompts, decisions, and supplied information shaped the final form.
+It is intended as a methods and provenance record for the practice.
+
+## Project overview
+
+The goal was to take an existing paper questionnaire — the 2026 Kensington
+patient feedback form, based on the RACGP patient feedback instrument and the
+P3CEQ (Person-Centred Coordinated Care Experience Questionnaire) — and
+reproduce it as a self-completed digital survey. The intended deployment:
+
+- **Platform:** SurveyCTO
+- **Distribution:** a single web link sent to patients by SMS
+- **Anonymity:** fully anonymous; every patient receives the same link
+- **Completion:** self-administered on a mobile phone, after the appointment
+
+The deliverable was a SurveyCTO XLSForm (an `.xlsx` workbook with `survey`,
+`choices`, and `settings` sheets) ready to upload to the practice's SurveyCTO
+console.
+
+## Major steps in the project
+
+The project proceeded through the following stages. Each is expanded in the
+sections that follow, alongside the specific user input that drove it.
+
+1. Reading and interpreting the source paper questionnaire.
+2. Identifying the design issues that a digital, anonymous, self-completed
+   survey raises.
+3. Capturing key design decisions from the user.
+4. Building the XLSForm (survey logic, choice lists, settings).
+5. Iterating on wording, styling, template screens, and response rules.
+6. Producing supporting guidance (installation and distribution).
+
+## Step 1 — Reading the source questionnaire
+
+**What happened.** The user uploaded the paper form
+(`2026_Kensington_Patient_feedback_RACGP_P3CEQ.docx`) and stated the plan:
+a phone/web survey in SurveyCTO, distributed by SMS as a single anonymous
+link.
+
+**How Claude helped.** Claude extracted the full text of the questionnaire —
+31 questions spanning experience ratings, care coordination, health
+conditions, and demographics — and parsed the response scales and the paper
+"skip to Q…" routing instructions.
+
+**How the user's input shaped this.** The user's stated deployment context
+(anonymous, same link for all, SMS-delivered, self-completed) was the lens
+through which every later decision was made. Without that framing, the form
+would have been a straight transcription; with it, Claude flagged where the
+paper form's assumptions (in-clinic completion, interviewer-managed skips)
+would not hold online.
+
+## Step 2 — Identifying the design issues
+
+**How Claude helped.** Before building anything, Claude surfaced the issues
+that a digital, anonymous, self-completed version raises:
+
+- **Skip logic** — the paper "go to Q…" jumps had to become SurveyCTO
+  `relevance` expressions so the form self-navigates (Q10, Q11, Q13 branches).
+- **Response-scale consistency** — different question blocks use different
+  coded scales (Q1–Q3 a 7-point scale coded 1–7; Q4–Q8 a 5-point scale coded
+  1–5). These had to be preserved exactly to stay comparable with the 2023
+  PaRIS / P3CEQ benchmark.
+- **Field types** — which questions are `select_one`, which are
+  `select_multiple`, and which need "Other (specify)" text follow-ups.
+- **Anonymity mechanics** — SurveyCTO still captures device metadata unless
+  disabled; a single shared link means no duplicate prevention and no
+  targeted reminders.
+- **Consent** — the paper preamble is the consent statement and needed to
+  become an explicit gate.
+- **Self-completion wording** — the paper form's "before you leave the
+  practice" and "this visit" framing is wrong for a survey sent after the
+  appointment.
+
+**How the user's input shaped this.** Each issue flagged traced directly back
+to the user's deployment choice. The anonymity and single-link requirement,
+for example, is what made the metadata, duplicate-submission, and
+reminder trade-offs worth raising rather than assuming.
+
+## Step 3 — Capturing design decisions from the user
+
+Claude paused to confirm three decisions rather than assume them. The user's
+answers directly determined how the form was built:
+
+| Decision point | User's choice | Effect on the form |
+|---|---|---|
+| Rating-block layout on mobile | "Whatever's most reliable on mobile" | One question per screen, with `field-list` grouping so related rating rows stay together but render as clean tap-lists |
+| Consent handling | Require explicit "I agree to continue" | A required consent question gates the whole survey; declining routes to a close-out message |
+| First deliverable | Full SurveyCTO XLSForm (`.xlsx`) | Claude produced the three-sheet XLSForm rather than a plan or a partial scaffold |
+
+**How the user's input shaped this.** This step is the clearest example of the
+user steering the build. The "most reliable on mobile" answer, rather than a
+request for a matrix grid, is why the form uses one-question-per-screen with
+`field-list` grouping. The explicit-consent choice is why the form opens with a
+required gate and carries a `${consent} = '1'` condition on every subsequent
+question.
+
+## Step 4 — Building the XLSForm
+
+**How Claude helped.** Claude built the XLSForm programmatically so the logic
+would be consistent and reproducible, producing:
+
+- a **`survey` sheet** with all 31 questions, the consent gate, group
+  structure, and skip logic written as `relevance` expressions;
+- a **`choices` sheet** with every response option and its original coded
+  value preserved;
+- a **`settings` sheet** with the form title, ID, and version.
+
+Key logic implemented:
+
+- **Consent gate** — a required first question; every other question is
+  relevant only when consent is given, so a non-consenter reaches the end
+  without seeing the survey.
+- **Skip logic as relevance** — Q11 shows only if Q10 is 1 or 2; Q12 only if
+  Q11 is 1; Q14–Q16 only if Q13 is 1. These reproduce the paper routing
+  automatically.
+- **Exclusive-option constraints** — on Q9 ("never been told…") and Q28 ("not
+  covered by any concession card"), so these cannot be combined with other
+  selections.
+- **"Other (specify)" follow-ups** — shown only when the relevant option is
+  chosen (Q9 option 12, Q25 option 8).
+- **Preserved coded values** — so results remain comparable with the P3CEQ /
+  PaRIS benchmark.
+
+**How the user's input shaped this.** The decisions from Step 3 are embedded
+directly in the build: the consent gate exists because the user asked for an
+explicit agreement; the one-question-per-screen structure exists because the
+user prioritised mobile reliability.
+
+## Step 5 — Iterating on wording, styling, and template screens
+
+Once the first XLSForm existed, the user requested a series of refinements.
+Each was driven by a specific user prompt:
+
+### "Most recent visit" wording
+
+The user asked to replace the paper form's "last visit" / "this visit"
+framing. Claude updated the Q1–Q3 headers and comment prompts, and Q31, to
+read "most recent visit", suiting a survey sent after the appointment.
+
+### No compulsory answers (except consent)
+
+The user asked that no answers be compulsory, then — when Claude flagged that
+making consent optional would defeat the gate — chose to keep **only consent
+required**. Claude cleared the `required` flag on every other row while leaving
+the consent question required. The skip logic and exclusive-option constraints
+were unaffected, because those are independent of whether a question is
+required.
+
+### Larger font and bold emphasis
+
+The user asked whether font size and bold could be applied, giving Q3 as an
+example and asking for "recent" in bold. Claude confirmed SurveyCTO renders
+inline Markdown/HTML in labels, then — per the user's follow-up choices —
+enlarged **all** main question headers (Q1–Q21) using a font-size span and
+bolded the word "recent" wherever it appears.
+
+### Understanding the template-driven screens
+
+The user noticed that the form's **first page** ("You are at the start of a
+form…") and its **last page** ("name this form") were not in the spreadsheet.
+Claude explained that these are SurveyCTO's own built-in web-form template
+screens, not content from the XLSForm:
+
+- The **start splash** draws its title from `form_title` but its body text and
+  the "Powered by SurveyCTO" footer are template boilerplate, not editable from
+  the form definition on standard plans.
+- The **submission screen's** "name this form" prompt asks for a form
+  *instance name*. For an anonymous survey this is undesirable, so — at the
+  user's direction — Claude set `instance_name` in the `settings` sheet to a
+  fixed string ("Kensington 2026 patient feedback response"), which removes the
+  prompt and auto-labels every submission.
+
+**How the user's input shaped this.** This whole stage was user-led. Claude did
+not invent these refinements; each one responded to an observation or request
+from the user — the wording change, the optional-answers request, the
+styling request with a specific example word, and the two questions about the
+template screens. Where a request had a hidden risk (making consent optional,
+or respondents typing identifying text into "name this form"), Claude raised it
+and let the user decide.
+
+## Step 6 — Supporting guidance
+
+Alongside the form, Claude provided guidance on:
+
+- **Installing the form** in the SurveyCTO console (Design tab → upload form
+  definition → validate → Test in preview).
+- **Generating the anonymous web link** (Collect tab) and the settings needed
+  to keep it anonymous (disabling device/caller metadata, optional
+  encryption via `public_key`).
+- **SMS distribution** — SurveyCTO does not send SMS itself, so the link is
+  pasted into the practice's own bulk-SMS tool, with the acknowledged
+  trade-off that a single anonymous link cannot track responders or send
+  reminders.
+
+## How user prompts and information shaped the final form — summary
+
+The form is a direct product of the user's inputs at each decision point. In
+summary:
+
+- The **deployment context** the user supplied (anonymous, single SMS link,
+  self-completed after the visit) determined the consent gate, the metadata and
+  anonymity cautions, and the "most recent visit" wording.
+- The user's **mobile-reliability preference** determined the
+  one-question-per-screen layout with `field-list` grouping.
+- The user's **explicit-consent choice** determined the required gate and the
+  `${consent} = '1'` relevance on every question.
+- The user's **"no compulsory answers" request**, refined to "consent only",
+  determined the `required` pattern.
+- The user's **styling request** (with a specific example) determined the
+  enlarged Q1–Q21 headers and the bolded "recent".
+- The user's **observations about the template screens** led to the
+  `instance_name` fix and the explanation of what can and cannot be edited.
+
+Throughout, Claude's role was to interpret the source instrument, translate it
+into SurveyCTO's logic faithfully (preserving coded values and routing),
+surface risks and trade-offs, and implement the user's decisions — while the
+user retained control of every design choice.
+
+## Deliverables
+
+- `kensington_p3ceq_2026_surveycto.xlsx` — the SurveyCTO XLSForm
+  (`survey`, `choices`, `settings` sheets), ready to upload.
+- This project-record document.
+
+## Notes and caveats
+
+- The P3CEQ is a validated instrument; coded response values were preserved to
+  maintain comparability with the 2023 PaRIS / P3CEQ benchmark.
+- A planned **multilingual (V2)** version was discussed. Because no validated
+  official translations exist for the practice's patient languages (Arabic,
+  Cantonese, Mandarin, Vietnamese, Hindi, Greek), the responsible approach is a
+  translation-ready scaffold for qualified translators rather than
+  machine-translated clinical wording. This remained outstanding at the time of
+  writing.
+- SurveyCTO's exact menu labels and some branding options vary by version and
+  licence tier; the practice's own console and SurveyCTO support documentation
+  are the authoritative reference for deployment specifics.
