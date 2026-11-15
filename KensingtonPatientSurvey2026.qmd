@@ -242,6 +242,85 @@ references:
     issued:
       date-parts:
         - [2014]
+  - type: report
+    id: deeny2018
+    author:
+      - family: "Deeny"
+        given: "Sarah"
+      - family: "Thorlby"
+        given: "Ruth"
+      - family: "Steventon"
+        given: "Adam"
+    title: "Briefing: Reducing emergency admissions: unlocking the potential of people to better manage their long-term conditions"
+    publisher: "The Health Foundation"
+    publisher-place: "London"
+    ISBN: "978-1-911615-15-6"
+    url: "https://www.health.org.uk/sites/default/files/Reducing-Emergency-Admissions-long-term-conditions-briefing.pdf"
+    issued:
+      date-parts:
+        - [2018, 8]
+    accessed:
+      date-parts:
+        - [2026, 11, 15]
+  - type: article-journal
+    id: shippee2012
+    author:
+      - family: "Shippee"
+        given: "N. D."
+      - family: "Shah"
+        given: "N. D."
+      - family: "May"
+        given: "C. R."
+      - family: "Mair"
+        given: "F. S."
+      - family: "Montori"
+        given: "V. M."
+    title: "Cumulative complexity: a functional, patient-centered model of patient complexity can improve research and practice"
+    container-title: "Journal of Clinical Epidemiology"
+    volume: 65
+    issue: 10
+    page: "1041-1051"
+    url: "https://doi.org/10.1016/j.jclinepi.2012.05.005"
+    DOI: "10.1016/j.jclinepi.2012.05.005"
+    issued:
+      date-parts:
+        - [2012]
+  - type: article-journal
+    id: may2014
+    author:
+      - family: "May"
+        given: "C. R."
+      - family: "Eton"
+        given: "D. T."
+      - family: "Boehmer"
+        given: "K."
+      - family: "Gallacher"
+        given: "K."
+      - family: "Hunt"
+        given: "K."
+      - family: "MacDonald"
+        given: "S."
+      - family: "Mair"
+        given: "F. S."
+      - family: "May"
+        given: "C. M."
+      - family: "Montori"
+        given: "V. M."
+      - family: "Richardson"
+        given: "A."
+      - family: "Rogers"
+        given: "A. E."
+      - family: "Shippee"
+        given: "N."
+    title: "Rethinking the patient: using Burden of Treatment Theory to understand the changing dynamics of illness"
+    container-title: "BMC Health Services Research"
+    volume: 14
+    page: "281"
+    url: "https://doi.org/10.1186/1472-6963-14-281"
+    DOI: "10.1186/1472-6963-14-281"
+    issued:
+      date-parts:
+        - [2014]
 editor: source
 ---
 
@@ -477,17 +556,19 @@ the time of the consultation, potentially improving the care coordination experi
 
 ### Potential avenues of future exploration and improvement
 
-* **Confidence to self-manage.** Although patients reported high levels of person-centred care,
-  their [confidence to manage their own health](#sec-self-manage-person-centred) (57% confident
+* **Confidence to self-manage.** Patients reported high levels of person-centred care,
+  but their [confidence to manage their own health](#sec-self-manage-person-centred) (57% confident
   or very confident) was slightly lower than the Australian (61%) and OECD (59%) averages.
+  Among respondents with a long-term condition, those living with a mental health condition and those who speak only languages other than English at home, reported [significantly lower confidence to self-manage their health](#sec-p3ceq-predictors) after adjusting for age, gender, other conditions and concession status. An English NHS study observed that patients with more confidence to manage their health conditions ('activation'),  including mental health conditions, had fewer primary care attendances and A&E attendances. Methods to improve patient activation include health coaching, which could be delivered through multiple members of the treatment team [@deeny2018].
 
-* **Language spoken at home.** Respondents who speak a language other than English (and not
-  English) at home reported care coordination at least as good as English-only speakers (care
-  coordination subscale 10.6 vs 10.0 out of 15), but slightly lower
+  Anecdotally, patients at Kensington general practice clinic who speak languages other than English have difficulty with accessing appointments with other services at cohealth, even after a GP referral, because of language barriers. GPs then spend additional time at later consultations (when the patient has access to an interpreter) to following up these referrals. Models of patient complexity and treatment burden suggest this could reduce patient capacity and confidence to manage their own health [@shippee2012; @may2014]. Easier access to cohealth services for patients who speak languages other than English, and a way for GPs to check the status of referrals to other cohealth services, could both improve patient access to needed services and reduce GP administrative workload.
+
+* **Language spoken at home.** Respondents who speak only languages other than English at home reported care coordination at least as good as English-only speakers (care
+  coordination subscale 10.6 vs 10.0 out of 15) and slightly lower
   [person-centred care](#sec-p3ceq-language) (person-centred subscale 17.8 vs 19.0 out of 24).
-  These differences are small and not statistically significant
-  ([see regression](#sec-p3ceq-predictors)), so they suggest a question worth exploring rather
-  than an established gap.
+  The difference in reported experience of person-centred care is small and not statistically significant
+  ([see regression](#sec-p3ceq-predictors)), and so suggests a question worth exploring rather
+  than an established gap. Their confidence to self-manage was, however, significantly lower (see above).
 
 * **Care planning.** Patients living with chronic conditions reported
   [better care coordination than the Australian average](#sec-carecoordinationsubscale), and most
@@ -497,7 +578,7 @@ the time of the consultation, potentially improving the care coordination experi
   one (23%)](#sec-p3ceq-care-planning).
   
 * **Improve communication between cohealth Kensington general practice and other services.** 
-  Improved communication with other services improved during the 2023--2026 period,
+  Communication with other services improved during the 2023--2026 period,
   but can be improved further. Pilot programs are underway to improve communication
   between primary care and the tertiary hospital-based Western Health (similar to the already mentioned and implemented
   'Parkville Connect'). This is expected to be of great benefit as many cohealth
@@ -1164,12 +1245,13 @@ The chart below is restricted to respondents who answered Q9 (so "0" is a real a
 long-term conditions, not a skipped question), with no age restriction. Unlike the 45+ comparisons
 against PaRIS benchmarks earlier, every respondent who answered Q9 is included regardless of age.
 The chart compares the P3CEQ person-centred (PC, out of 24) and care coordination (CC, out of 15) subscale
-scores against the number of long-term conditions reported.
+scores, and the P3CEQ Q10 confidence to self-manage item (out of 3), against the number of
+long-term conditions reported.
 
 ```{r}
 #| label: p3ceq-subscales-by-conditions
-#| fig-cap: "P3CEQ PC and CC subscale scores by number of long-term conditions (Q9)"
-#| fig-width: 8
+#| fig-cap: "P3CEQ PC and CC subscale scores and confidence to self-manage (Q10) by number of long-term conditions (Q9)"
+#| fig-width: 10
 #| fig-height: 4.5
 
 # The exploded q9_* indicator columns are 0 (not NA) even when Q9 was skipped entirely - SurveyCTO
@@ -1190,15 +1272,16 @@ q9_conditions <- survey |>
 
 subscale_labels <- c(
   pc_subscale = "Person-centred (PC, out of 24)",
-  cc_subscale = "Care coordination (CC, out of 15)"
+  cc_subscale = "Care coordination (CC, out of 15)",
+  p10         = "Confidence to self-manage (Q10, out of 3)" # p10 = recoded q19, single P3CEQ item
 )
 
-# PC and CC are on different maximum scores (24 vs 15), so they're faceted with independent y-axes
-# rather than drawn as two lines on one shared axis.
+# PC, CC and Q10 are on different maximum scores (24, 15 and 3), so they're faceted with
+# independent y-axes rather than drawn as lines on one shared axis.
 subscale_by_conditions <- p3ceq |>
-  select(KEY, pc_subscale, cc_subscale) |>
+  select(KEY, pc_subscale, cc_subscale, p10) |>
   inner_join(q9_conditions, by = "KEY") |>
-  pivot_longer(c(pc_subscale, cc_subscale), names_to = "subscale", values_to = "score") |>
+  pivot_longer(c(pc_subscale, cc_subscale, p10), names_to = "subscale", values_to = "score") |>
   filter(!is.na(score)) |>
   mutate(subscale = factor(subscale_labels[subscale], levels = subscale_labels))
 
@@ -1210,8 +1293,8 @@ ggplot(subscale_summary, aes(condition_band, mean_score, group = subscale)) +
   geom_line(linewidth = 0.9, colour = pal_blue) +
   geom_point(size = 2.5, colour = pal_blue) +
   facet_wrap(~subscale, scales = "free_y") +
-  labs(x = "Number of long-term conditions (Q9)", y = "Mean subscale score",
-       title = "P3CEQ subscale scores by number of long-term conditions") +
+  labs(x = "Number of long-term conditions (Q9)", y = "Mean score",
+       title = "P3CEQ subscale and confidence to self-manage scores by number of long-term conditions") +
   theme(strip.text = element_text(face = "bold", colour = ink_primary, hjust = 0))
 ```
 
@@ -1453,12 +1536,13 @@ long-term condition in Q9 (per `q9_conditions` above, so a Q9 skip is excluded r
 as zero conditions), with no age restriction. Respondents are grouped into three categories based
 on the individual Q25 language options: "English only" (selected English, `q25_1`, and no other language),
 "Another language (no English)" (selected at least one other language and not English),
-and "English and another language" (selected both).
+and "English and another language" (selected both). Alongside the PC and CC subscales, the chart
+shows the P3CEQ Q10 confidence to self-manage item (out of 3).
 
 ```{r}
 #| label: p3ceq-subscales-by-language
-#| fig-cap: "P3CEQ PC and CC subscale scores by language spoken at home (Q25), respondents with 1+ long-term conditions (Q9)"
-#| fig-width: 8
+#| fig-cap: "P3CEQ PC and CC subscale scores and confidence to self-manage (Q10) by language spoken at home (Q25), respondents with 1+ long-term conditions (Q9)"
+#| fig-width: 10
 #| fig-height: 4.5
 
 language_group_levels <- c("English only", "Another language (no English)", "English and another language")
@@ -1484,11 +1568,11 @@ q25_language <- survey |>
 # subscale_labels and q9_conditions defined earlier in "P3CEQ subscales by number of conditions"
 # above; q9_conditions is already restricted to respondents who answered Q9.
 subscale_by_language <- p3ceq |>
-  select(KEY, pc_subscale, cc_subscale) |>
+  select(KEY, pc_subscale, cc_subscale, p10) |>
   inner_join(q25_language, by = "KEY") |>
   inner_join(q9_conditions |> select(KEY, n_conditions), by = "KEY") |>
   filter(n_conditions >= 1) |>
-  pivot_longer(c(pc_subscale, cc_subscale), names_to = "subscale", values_to = "score") |>
+  pivot_longer(c(pc_subscale, cc_subscale, p10), names_to = "subscale", values_to = "score") |>
   filter(!is.na(score)) |>
   mutate(subscale = factor(subscale_labels[subscale], levels = subscale_labels))
 
@@ -1502,8 +1586,8 @@ ggplot(language_summary, aes(language_group, mean_score)) +
   facet_wrap(~subscale, scales = "free_y") +
   scale_x_discrete(labels = \(x) str_wrap(x, 12)) +
   scale_y_continuous(expand = expansion(mult = c(0, 0.15))) +
-  labs(x = NULL, y = "Mean subscale score",
-       title = "P3CEQ subscale scores by language spoken at home") +
+  labs(x = NULL, y = "Mean score",
+       title = "P3CEQ subscale and confidence to self-manage scores by language spoken at home") +
   theme(strip.text = element_text(face = "bold", colour = ink_primary, hjust = 0))
 ```
 
@@ -1555,73 +1639,131 @@ ggplot(q24_summary, aes(attended_other_gp, mean_score)) +
   theme(strip.text = element_text(face = "bold", colour = ink_primary, hjust = 0))
 ```
 
-### Predictors of P3CEQ scores: language, gender, age and number of chronic conditions {#sec-p3ceq-predictors}
+### Predictors of P3CEQ scores: language, gender, age, number of chronic conditions, concession card and mental health {#sec-p3ceq-predictors}
 
-Estimates through a multiple linear regression the association of language spoken at home (Q25), gender
-(Q22), age band (Q26) and number of long-term conditions (Q9, entered as a linear term, capped at
-5+) with the P3CEQ total score and PC/CC subscales. The sample is restricted to respondents
-who recorded at least one long-term condition in Q9, and who answered Q25, Q22 and Q26. 
+A multiple linear regression estimates the association of each of the following with:
+
+* language spoken at home (Q25,
+binary: "Another language (no English)" vs "English +/- another language", the reference)
+* gender
+(Q22)
+* age (Q26, binary: 65+ vs under 65, the reference)
+* number of long-term conditions other than a mental health condition (Q9,
+entered as a linear term, capped at 5+)
+* socioeconomic status (Q28, binary: holding a concession card of any type — Health Care
+Card, Pensioner Concession Card or Veterans' Affairs card — vs "Not covered by any concession
+card", the reference)
+* having depression, anxiety or another mental health
+condition (Q9, binary, vs not)
+
+...with the P3CEQ total score, the PC/CC subscales and the P3CEQ Q10
+confidence to self-manage item (0–3). A mental health condition is left out of the number of
+conditions, so its estimate is the association of having a mental health condition vs not, for
+the same number of other conditions. The sample is restricted to respondents
+who recorded at least one long-term condition in Q9, and who answered Q25, Q22, Q26 and Q28.
 A "Don't wish to say" age response (Q26 = 5) is treated as not having answered an age.
 Each outcome's model uses every respondent in that sample with a non-missing score for it,
-so the total, PC and CC models can have slightly different sample sizes.
+so the total, PC, CC and confidence to self-manage models can have slightly different sample sizes.
+
+Concession card holders reported slightly higher confidence to self-manage than non-holders (non-statistically significant). This is unexpected, as concession cards generally indicate lower income, which is usually associated with lower activation. However, only 18 of 104 respondents int he regression sample had no concession card, so this estimate is imprecise.
 
 ```{r}
 #| label: p3ceq-regression
 
-# Age band collapses Q26's five options into three: "Don't wish to say" (5) and a blank answer are
-# excluded (not an age), and the sparse 15-24 and 25-44 bands (2 and 11 respondents respectively,
-# among those with 1+ condition) are combined into "Under 45" so the model isn't fit on near-empty
-# cells.
+# Age band collapses Q26's five options into two: "Don't wish to say" (5) and a blank answer are
+# excluded (not an age), and the 15-24, 25-44 and 45-64 bands are combined into "Under 65". The
+# sparse 15-24 and 25-44 bands (2 and 11 respondents respectively, among those with 1+ condition)
+# were previously combined into "Under 45" alongside a separate "45–64" band, but under 45 and 45-64
+# didn't differ on any outcome, and 65 (roughly pension age) is the more meaningful cut-off.
 demo_covariates <- survey |>
   mutate(
     KEY,
     gender = factor(case_when(q22 == 1 ~ "Male", q22 == 2 ~ "Female"), levels = c("Female", "Male")),
     age_band = factor(case_when(
-      q26 %in% c(1, 2) ~ "Under 45",
-      q26 == 3          ~ "45–64",
-      q26 == 4          ~ "65+"
-    ), levels = c("Under 45", "45–64", "65+")),
+      q26 %in% c(1, 2, 3) ~ "Under 65",
+      q26 == 4             ~ "65+"
+    ), levels = c("Under 65", "65+")),
     .keep = "none"
   ) |>
   filter(!is.na(gender), !is.na(age_band))
 
+# Q28 socioeconomic status marker: holding any concession card (Health Care Card q28_1, Pensioner
+# Concession Card q28_2, or Veterans' Affairs card q28_3), at any age, vs none. "Not covered by any
+# concession card" (q28_4) is never ticked together with a card in the data. Among 65+ a card
+# (mostly the Pensioner Concession Card) largely reflects pension age rather than low income, but
+# age_band is in the model alongside it. As with q9/q25, the exploded q28_* columns are 0 even when
+# Q28 was skipped, so "answered" is read off the raw q28 column.
+concession_covariate <- survey |>
+  mutate(
+    KEY,
+    answered_q28 = !is.na(q28) & q28 != "",
+    concession = factor(if_else(q28_1 == 1 | q28_2 == 1 | q28_3 == 1, "Concession card", "No concession card"),
+                        levels = c("No concession card", "Concession card")),
+    .keep = "none"
+  ) |>
+  filter(answered_q28) |>
+  select(KEY, concession)
+
+# Q9 option 7 = "Depression, anxiety or other mental health condition". q9_7 is a real 0/1 once
+# Q9 was answered, which q9_conditions (joined below) already guarantees.
+mental_health_covariate <- survey |>
+  transmute(KEY, mental_health = factor(if_else(q9_7 == 1, "Mental health condition", "No mental health condition"),
+                                        levels = c("No mental health condition", "Mental health condition")))
+
 # q25_language, q9_conditions defined earlier above; both are already
-# restricted to respondents who answered Q25 / Q9 respectively. n_conditions is capped at 5
-# here (matching condition_band's "5+" top band above) rather than left as the raw count, so the
-# linear term isn't dominated by a handful of respondents reporting many more conditions
+# restricted to respondents who answered Q25 / Q9 respectively. The 1+ condition sample
+# restriction uses the full count (so a respondent whose only condition is a mental health one is
+# kept), but the predictor n_other_conditions leaves out the mental health condition (q9_7), which
+# is a separate predictor - counting it in both would make the mental_health estimate "a mental
+# health condition instead of another condition" rather than "vs no mental health condition".
+# n_other_conditions is capped at 5 (matching condition_band's "5+" top band above) rather than
+# left as the raw count, so the linear term isn't dominated by a handful of respondents reporting
+# many more conditions.
+# language_group's three categories are collapsed to a binary predictor here: "English only" and
+# "English and another language" are combined into "English +/- another language" (the reference),
+# contrasted with "Another language (no English)".
+reg_language_levels <- c("English +/- another language", "Another language (no English)")
 reg_data <- p3ceq |>
-  select(KEY, total, pc_subscale, cc_subscale) |>
+  select(KEY, total, pc_subscale, cc_subscale, p10) |>
   inner_join(
     q9_conditions |> filter(n_conditions >= 1) |>
-      mutate(n_conditions = pmin(n_conditions, 5)) |>
       select(KEY, n_conditions),
     by = "KEY"
   ) |>
   inner_join(q25_language |> select(KEY, language_group), by = "KEY") |>
-  inner_join(demo_covariates, by = "KEY")
+  mutate(language_binary = factor(
+    if_else(language_group == "Another language (no English)",
+            "Another language (no English)", "English +/- another language"),
+    levels = reg_language_levels
+  )) |>
+  inner_join(demo_covariates, by = "KEY") |>
+  inner_join(concession_covariate, by = "KEY") |>
+  inner_join(mental_health_covariate, by = "KEY") |>
+  mutate(n_other_conditions = pmin(n_conditions - (mental_health == "Mental health condition"), 5))
 
 reg_outcome_labels <- c(
   total       = "P3CEQ total (0–30)",
   pc_subscale = "PC subscale (0–24)",
-  cc_subscale = "CC subscale (0–15)"
+  cc_subscale = "CC subscale (0–15)",
+  p10         = "Confidence to self-manage (0–3)" # p10 = recoded q19
 )
 
 # lm()'s default na.action (na.omit) drops rows missing that particular outcome, so each model
 # fits on all of reg_data with a non-missing score for it - no separate per-outcome filter needed.
-reg_predictors <- c("language_group", "gender", "age_band", "n_conditions")
+reg_predictors <- c("language_binary", "gender", "age_band", "n_other_conditions", "concession", "mental_health")
 reg_models <- map(names(reg_outcome_labels), function(outcome) {
   lm(reformulate(reg_predictors, response = outcome), data = reg_data)
 }) |>
   set_names(names(reg_outcome_labels))
 
 reg_term_labels <- c(
-  "(Intercept)" = "Intercept (English only, Female, Under 45, 0 conditions)",
-  "language_groupAnother language (no English)" = "Another language (no English)",
-  "language_groupEnglish and another language"   = "English and another language",
+  "(Intercept)" = "Intercept (English +/- another language, Female, Under 65, 0 other conditions, no concession card, no mental health condition)",
+  "language_binaryAnother language (no English)" = "Another language (no English)",
   "genderMale"          = "Male",
-  "age_band45–64"       = "45–64",
   "age_band65+"         = "65+",
-  "n_conditions"        = "Number of conditions (Q9, per condition, capped at 5+)"
+  "n_other_conditions"  = "Number of other conditions (Q9, excl. mental health, capped at 5+)",
+  "concessionConcession card"             = "Concession card, any type (Q28)",
+  "mental_healthMental health condition"  = "Depression, anxiety or other mental health condition (Q9)"
 )
 
 reg_coefs <- map_dfr(names(reg_models), function(nm) {
@@ -1636,19 +1778,19 @@ reg_coefs <- map_dfr(names(reg_models), function(nm) {
 
 ```{r}
 #| label: fig-p3ceq-regression
-#| fig-cap: "Predictors of P3CEQ scores: language, gender, age and number of conditions (95% CI), among respondents with 1+ long-term conditions (Q9)"
+#| fig-cap: "Predictors of P3CEQ scores: language, gender, age, number of conditions, concession card and mental health condition (95% CI), among respondents with 1+ long-term conditions (Q9)"
 #| fig-width: 9
-#| fig-height: 5.5
+#| fig-height: 8
 
 reg_coefs |>
-  filter(term != "Intercept (English only, Female, Under 45, 0 conditions)") |>
+  filter(term != reg_term_labels[["(Intercept)"]]) |>
   ggplot(aes(estimate, term)) +
   geom_vline(xintercept = 0, colour = baseline_col, linewidth = 0.4) +
   geom_pointrange(aes(xmin = conf.low, xmax = conf.high), colour = pal_blue, linewidth = 0.7, size = 0.5) +
-  facet_wrap(~outcome, scales = "free_x") +
+  facet_wrap(~outcome, scales = "free_x", ncol = 2) +
   labs(x = "Estimated change in score vs reference (95% CI)", y = NULL,
        title = "Predictors of P3CEQ scores",
-       subtitle = "Reference categories: English only, Female, Under 45.\nNumber of conditions is a linear term (per additional condition, capped at 5+)") +
+       subtitle = "Reference categories: English +/- another language, Female, Under 65,\nno concession card, no mental health condition.\nNumber of other conditions (excl. mental health) is a linear term (per additional condition, capped at 5+)") +
   theme(strip.text = element_text(face = "bold", colour = ink_primary, hjust = 0))
 ```
 
@@ -1755,11 +1897,11 @@ distributions, not their cross-tabulation.
 ## Appendices {#sec-appendices}
 
 ::: {.callout-note collapse="true"}
-### P3CEQ PC and CC subscale scores by number of long-term conditions: sample sizes
+### P3CEQ PC and CC subscale and confidence to self-manage scores by number of long-term conditions: sample sizes
 
 ```{r}
 #| label: tbl-p3ceq-subscales-by-conditions
-#| tbl-cap: "P3CEQ PC and CC subscale scores by number of long-term conditions: underlying means and sample sizes"
+#| tbl-cap: "P3CEQ PC and CC subscale and confidence to self-manage (Q10) scores by number of long-term conditions: underlying means and sample sizes"
 
 subscale_summary |>
   arrange(subscale, condition_band) |>
@@ -1810,10 +1952,10 @@ q3_summary |>
 :::
 
 ::: {.callout-note collapse="true"}
-### P3CEQ PC and CC subscale scores by language: sample sizes
+### P3CEQ PC and CC subscale and confidence to self-manage scores by language: sample sizes
 ```{r}
 #| label: tbl-p3ceq-subscales-by-language
-#| tbl-cap: "P3CEQ PC and CC subscale scores by language spoken at home, respondents with 1+ long-term conditions: underlying means and sample sizes"
+#| tbl-cap: "P3CEQ PC and CC subscale and confidence to self-manage (Q10) scores by language spoken at home, respondents with 1+ long-term conditions: underlying means and sample sizes"
 
 language_summary |>
   arrange(subscale, language_group) |>
@@ -1850,7 +1992,7 @@ q24_summary |>
 
 ```{r}
 #| label: tbl-p3ceq-regression
-#| tbl-cap: "Predictors of P3CEQ scores: full coefficient table (language, gender, age, number of conditions)"
+#| tbl-cap: "Predictors of P3CEQ scores and confidence to self-manage: full coefficient table (language, gender, age, number of conditions, concession card, mental health condition)"
 
 reg_coefs |>
   arrange(outcome, term) |>
