@@ -16,8 +16,9 @@ abstract: |
   of respondents with a long-term condition either did not have a care plan (37%) or were
   not sure whether they had a care plan (23%).
   
-  Confidence to self-manage one's own health (57%) was slightly lower than the Australian (61%) and OECD (59%)
-  benchmarks. Respondents who speak a language other than English (and not English) at home
+  Confidence to self-manage one's own health (57%) was slightly lower than the Australian (61%) and OECD (59%) benchmarks. Those living with a mental health condition and those who speak only languages other than English at home reported significantly lower confidence to self-manage their health after adjusting for age, gender, other conditions and concession status (95% CI -0.89 to -0.04 mental health condition, -1.09 to -0.09 languages other than English. For patients living with at least one chronic condition).
+  
+  Respondents who speak a language other than English (and not English) at home
   reported care coordination at least as high as English-only speakers (10.6 vs 10.0 out of 15)
   but slightly lower person-centred care (17.8 vs 18.9 out of 24).
   
@@ -554,14 +555,16 @@ marked with a status other than 'No action' is now flagged for the clinician's a
 during the consultation. This encourages the clinician to review the correspondence at
 the time of the consultation, potentially improving the care coordination experience for the patient.
 
-### Potential avenues of future exploration and improvement
+### Potential avenues of improvement and future investigation
 
 * **Confidence to self-manage.** Patients reported high levels of person-centred care,
   but their [confidence to manage their own health](#sec-self-manage-person-centred) (57% confident
   or very confident) was slightly lower than the Australian (61%) and OECD (59%) averages.
   Among respondents with a long-term condition, those living with a mental health condition and those who speak only languages other than English at home, reported [significantly lower confidence to self-manage their health](#sec-p3ceq-predictors) after adjusting for age, gender, other conditions and concession status. An English NHS study observed that patients with more confidence to manage their health conditions ('activation'),  including mental health conditions, had fewer primary care attendances and A&E attendances. Methods to improve patient activation include health coaching, which could be delivered through multiple members of the treatment team [@deeny2018].
 
-  Anecdotally, patients at Kensington general practice clinic who speak languages other than English have difficulty with accessing appointments with other services at cohealth, even after a GP referral, because of language barriers. GPs then spend additional time at later consultations (when the patient has access to an interpreter) to following up these referrals. Models of patient complexity and treatment burden suggest this could reduce patient capacity and confidence to manage their own health [@shippee2012; @may2014]. Easier access to cohealth services for patients who speak languages other than English, and a way for GPs to check the status of referrals to other cohealth services, could both improve patient access to needed services and reduce GP administrative workload.
+  Anecdotally, patients at Kensington general practice clinic who speak languages other than English have difficulty with accessing appointments with other services at cohealth, even after a GP referral, because of language barriers. GPs then spend additional time at later consultations (when the patient has access to an interpreter) to following up these referrals. Models of patient complexity and treatment burden suggest this could reduce patient capacity and confidence to manage their own health [@shippee2012; @may2014].
+  
+  Easier access to cohealth services for patients who speak languages other than English, and a way for GPs to check the status of referrals to other cohealth services, could both improve patient access to needed services and reduce GP administrative workload.
 
 * **Language spoken at home.** Respondents who speak only languages other than English at home reported care coordination at least as good as English-only speakers (care
   coordination subscale 10.6 vs 10.0 out of 15) and slightly lower
